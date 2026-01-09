@@ -4,13 +4,22 @@ import { logger } from './logger';
 const apiKey = process.env.AFRICA_TALKING_API_KEY || '';
 const username = process.env.AFRICA_TALKING_USERNAME || 'sandbox';
 
-// Initialize Africa's Talking
-const africasTalking = AfricasTalking({
-  apiKey,
-  username,
-});
+// Initialize Africa's Talking only if apiKey is provided
+// Otherwise, SMS functions will work in dev mode
+let africasTalking: any = null;
+let sms: any = null;
 
-const sms = africasTalking.SMS;
+if (apiKey && apiKey !== '') {
+  try {
+    africasTalking = AfricasTalking({
+      apiKey,
+      username,
+    });
+    sms = africasTalking.SMS;
+  } catch (error) {
+    logger.error('Failed to initialize Africa\'s Talking:', error);
+  }
+}
 
 export function formatKenyanPhoneNumber(phone: string): string {
   // Remove any spaces, dashes, or special characters
@@ -124,8 +133,8 @@ export async function sendOTP(phoneNumber: string, otp: string): Promise<{ succe
   const message = `Your Outfittr verification code is: ${otp}. Valid for 10 minutes.`;
 
   // In development or if credentials are not set, just log and return success
-  if (!apiKey || apiKey === 'placeholder_api_key' || username === 'sandbox') {
-    console.log(`[DEV MODE] Would send SMS to ${formattedPhone}: ${message}`);
+  if (!apiKey || apiKey === 'placeholder_api_key' || username === 'sandbox' || !sms) {
+    logger.log(`[DEV MODE] Would send SMS to ${formattedPhone}: ${message}`);
     
     // Store OTP for verification
     storeOTP(formattedPhone, otp);
@@ -168,7 +177,7 @@ export async function sendSMS(phoneNumber: string, message: string): Promise<{ s
   const formattedPhone = formatKenyanPhoneNumber(phoneNumber);
 
   // In development or if credentials are not set, just log and return success
-  if (!apiKey || apiKey === 'placeholder_api_key' || username === 'sandbox') {
+  if (!apiKey || apiKey === 'placeholder_api_key' || username === 'sandbox' || !sms) {
     logger.log(`[DEV MODE] Would send SMS to ${formattedPhone}: ${message}`);
     return {
       success: true,

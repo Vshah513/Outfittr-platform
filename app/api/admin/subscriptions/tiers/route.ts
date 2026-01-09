@@ -43,21 +43,23 @@ export async function GET(request: NextRequest) {
 }
 
 /**
- * PUT /api/admin/subscriptions/tiers/[id]
+ * PUT /api/admin/subscriptions/tiers
  * Update a subscription tier (admin only)
+ * Note: This should be moved to /api/admin/subscriptions/tiers/[id]/route.ts
  */
-export async function PUT(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function PUT(request: NextRequest) {
   try {
     const { user, error: authError } = await getAuthenticatedUser(request);
     if (!user || !isAdmin(user.phone_number)) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
     }
 
-    const { id } = await params;
     const body = await request.json();
+    const { id } = body;
+    
+    if (!id) {
+      return NextResponse.json({ error: 'id is required in request body' }, { status: 400 });
+    }
 
     // Validate update fields
     const allowedFields = ['name', 'price_kes', 'active_listings_limit', 'features', 'paystack_plan_code'];
@@ -153,21 +155,24 @@ export async function POST(request: NextRequest) {
 }
 
 /**
- * DELETE /api/admin/subscriptions/tiers/[id]
+ * DELETE /api/admin/subscriptions/tiers
  * Delete a subscription tier (admin only)
+ * Note: This should be moved to /api/admin/subscriptions/tiers/[id]/route.ts
  * Note: This will fail if there are existing subscriptions using this tier
  */
-export async function DELETE(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function DELETE(request: NextRequest) {
   try {
     const { user, error: authError } = await getAuthenticatedUser(request);
     if (!user || !isAdmin(user.phone_number)) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
     }
 
-    const { id } = await params;
+    const body = await request.json();
+    const { id } = body;
+    
+    if (!id) {
+      return NextResponse.json({ error: 'id is required in request body' }, { status: 400 });
+    }
 
     // Prevent deletion of free tier
     if (id === 'free') {

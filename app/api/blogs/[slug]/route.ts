@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServiceSupabase } from '@/lib/db';
 import { createSupabaseServerClient } from '@/lib/auth';
+import { logger } from '@/lib/logger';
 
 // Helper to check if user is admin
 async function isAdmin(request: NextRequest): Promise<boolean> {
@@ -24,9 +25,10 @@ async function isAdmin(request: NextRequest): Promise<boolean> {
 // GET /api/blogs/[slug] - Get single blog post
 export async function GET(
   request: NextRequest,
-  { params }: { params: { slug: string } }
+  { params }: { params: Promise<{ slug: string }> }
 ) {
   try {
+    const { slug } = await params;
     const serviceSupabase = getServiceSupabase();
     if (!serviceSupabase) {
       return NextResponse.json(
@@ -43,7 +45,7 @@ export async function GET(
         *,
         author:users!blog_posts_author_id_fkey(id, full_name, avatar_url)
       `)
-      .eq('slug', params.slug);
+      .eq('slug', slug);
 
     // Only admins can see drafts/archived
     if (!isAdminUser) {
@@ -61,7 +63,7 @@ export async function GET(
 
     return NextResponse.json({ post });
   } catch (error) {
-    console.error('Error in GET /api/blogs/[slug]:', error);
+    logger.error('Error in GET /api/blogs/[slug]:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -72,9 +74,10 @@ export async function GET(
 // PUT /api/blogs/[slug] - Update blog post (admin only)
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { slug: string } }
+  { params }: { params: Promise<{ slug: string }> }
 ) {
   try {
+    const { slug } = await params;
     if (!(await isAdmin(request))) {
       return NextResponse.json(
         { error: 'Unauthorized. Admin access required.' },
@@ -96,8 +99,8 @@ export async function PUT(
     // Check if post exists
     const { data: existingPost } = await serviceSupabase
       .from('blog_posts')
-      .select('id, slug')
-      .eq('slug', params.slug)
+      .select('id, slug, published_at')
+      .eq('slug', slug)
       .single();
 
     if (!existingPost) {
@@ -161,7 +164,7 @@ export async function PUT(
       .single();
 
     if (error) {
-      console.error('Error updating blog post:', error);
+      logger.error('Error updating blog post:', error);
       return NextResponse.json(
         { error: 'Failed to update blog post' },
         { status: 500 }
@@ -170,7 +173,7 @@ export async function PUT(
 
     return NextResponse.json({ post });
   } catch (error) {
-    console.error('Error in PUT /api/blogs/[slug]:', error);
+    logger.error('Error in PUT /api/blogs/[slug]:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -181,9 +184,10 @@ export async function PUT(
 // DELETE /api/blogs/[slug] - Delete blog post (admin only)
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { slug: string } }
+  { params }: { params: Promise<{ slug: string }> }
 ) {
   try {
+    const { slug } = await params;
     if (!(await isAdmin(request))) {
       return NextResponse.json(
         { error: 'Unauthorized. Admin access required.' },
@@ -202,10 +206,10 @@ export async function DELETE(
     const { error } = await serviceSupabase
       .from('blog_posts')
       .delete()
-      .eq('slug', params.slug);
+      .eq('slug', slug);
 
     if (error) {
-      console.error('Error deleting blog post:', error);
+      logger.error('Error deleting blog post:', error);
       return NextResponse.json(
         { error: 'Failed to delete blog post' },
         { status: 500 }
@@ -214,7 +218,7 @@ export async function DELETE(
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('Error in DELETE /api/blogs/[slug]:', error);
+    logger.error('Error in DELETE /api/blogs/[slug]:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
