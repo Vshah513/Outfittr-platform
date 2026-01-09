@@ -1,0 +1,12 @@
+User-agent: *
+Allow: /
+
+# Disallow admin and API routes
+Disallow: /api/
+Disallow: /dashboard/
+Disallow: /listings/new
+Disallow: /listings/edit/
+
+Sitemap: https://YOUR-VERCEL-DOMAIN.vercel.app/sitemap.xml
+# Note: Update this with your actual domain after deployment
+# Or use environment variable in a dynamic robots.txt if needed
