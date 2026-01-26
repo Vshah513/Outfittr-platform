@@ -38,14 +38,14 @@ export async function GET(request: NextRequest) {
           tier_id: 'free',
           tier_name: 'Free',
           price_kes: 0,
-          active_listings_limit: 25,
-          features: ['Basic selling', 'Up to 25 active listings'],
+          active_listings_limit: 7,
+          features: ['Basic selling', 'Up to 7 active listings'],
           is_active: true,
           current_period_end: null,
         },
         usage: {
           current_listings: 0,
-          limit: 25,
+          limit: 7,
           percentage: 0,
         },
         canCreateListing: true,
@@ -56,8 +56,8 @@ export async function GET(request: NextRequest) {
       tier_id: 'free',
       tier_name: 'Free',
       price_kes: 0,
-      active_listings_limit: 25,
-      features: ['Basic selling', 'Up to 25 active listings'],
+      active_listings_limit: 7,
+      features: ['Basic selling', 'Up to 7 active listings'],
       is_active: true,
       current_period_end: null,
     };
@@ -71,11 +71,11 @@ export async function GET(request: NextRequest) {
 
     const usage = canCreate?.[0] || {
       current_count: 0,
-      listing_limit: plan.active_listings_limit || 25,
+      listing_limit: plan.active_listings_limit || 7,
       can_create: true,
     };
 
-    const limit = usage.listing_limit || plan.active_listings_limit || 25;
+    const limit = usage.listing_limit || plan.active_listings_limit || 7;
     const percentage = limit ? Math.round((usage.current_count / limit) * 100) : 0;
 
     return NextResponse.json({

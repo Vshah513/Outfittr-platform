@@ -1,5 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createSupabaseServerClient } from '@/lib/auth';
+import { getServiceSupabase } from '@/lib/db';
+
+// Tier-based analytics access levels
+const ANALYTICS_ACCESS = {
+  free: { hasBasic: false, hasAdvanced: false, hasDemandInsights: false },
+  base: { hasBasic: true, hasAdvanced: false, hasDemandInsights: false },
+  growth: { hasBasic: true, hasAdvanced: true, hasDemandInsights: false },
+  pro: { hasBasic: true, hasAdvanced: true, hasDemandInsights: true },
+};
 
 export async function GET(request: NextRequest) {
   console.log('📊 Analytics API called');
@@ -55,11 +64,12 @@ export async function GET(request: NextRequest) {
     }
 
     return await getAnalyticsForUser(supabase, user);
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     console.error('❌ Server error:', error);
     return NextResponse.json({ 
       error: 'Internal server error',
-      details: error.message 
+      details: errorMessage 
     }, { status: 500 });
   }
 }
@@ -80,6 +90,45 @@ interface AnalyticsProduct {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function getAnalyticsForUser(supabase: any, user: { id: string }) {
   console.log('📈 Calculating analytics for user:', user.id);
+
+  // Get user's subscription tier using service client for RPC
+  const serviceSupabase = getServiceSupabase();
+  let userTier = 'free';
+  let accessLevel = ANALYTICS_ACCESS.free;
+  
+  if (serviceSupabase) {
+    try {
+      const { data: planData } = await serviceSupabase
+        .rpc('get_seller_plan', { p_seller_id: user.id });
+      
+      if (planData && planData[0]) {
+        const plan = planData[0];
+        const isActive = plan.tier_id === 'free' || 
+          (plan.current_period_end && new Date(plan.current_period_end) > new Date());
+        
+        if (isActive) {
+          userTier = plan.tier_id as keyof typeof ANALYTICS_ACCESS;
+          accessLevel = ANALYTICS_ACCESS[userTier as keyof typeof ANALYTICS_ACCESS] || ANALYTICS_ACCESS.free;
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching user plan for analytics:', error);
+    }
+  }
+
+  console.log('📊 Analytics tier access:', { userTier, accessLevel });
+
+  // Free tier: Return upgrade prompt
+  if (!accessLevel.hasBasic) {
+    return NextResponse.json({
+      success: true,
+      tier: userTier,
+      accessLevel,
+      requiresUpgrade: true,
+      upgradeMessage: 'Upgrade to Base plan or higher to access seller analytics.',
+      analytics: null,
+    });
+  }
 
   // Get all products (active and sold)
   const { data: products, error: productsError } = await supabase
@@ -111,75 +160,166 @@ async function getAnalyticsForUser(supabase: any, user: { id: string }) {
     totalViews
   });
 
-  // Calculate best-selling categories (top 5)
-  const categorySales: Record<string, { count: number; earnings: number }> = {};
-  soldProducts.forEach(product => {
-    const category = product.subcategory || product.category;
-    if (!categorySales[category]) {
-      categorySales[category] = { count: 0, earnings: 0 };
-    }
-    categorySales[category].count += 1;
-    categorySales[category].earnings += Number(product.price);
-  });
-
-  const topCategories = Object.entries(categorySales)
-    .map(([name, data]) => ({ name, ...data }))
-    .sort((a, b) => b.count - a.count)
-    .slice(0, 5);
-
-  // Recent sales (last 30 days grouped by week)
-  const thirtyDaysAgo = new Date();
-  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-
-  const recentSales = soldProducts
-    .filter(p => new Date(p.updated_at) >= thirtyDaysAgo)
-    .sort((a, b) => new Date(a.updated_at).getTime() - new Date(b.updated_at).getTime());
-
-  // Group sales by week
-  const salesByWeek: Record<string, number> = {};
-  recentSales.forEach(product => {
-    const date = new Date(product.updated_at);
-    const weekStart = new Date(date);
-    weekStart.setDate(date.getDate() - date.getDay());
-    const weekKey = weekStart.toISOString().split('T')[0];
-    
-    salesByWeek[weekKey] = (salesByWeek[weekKey] || 0) + Number(product.price);
-  });
-
-  const salesTrend = Object.entries(salesByWeek).map(([date, amount]) => ({
-    date,
-    amount,
-  }));
-
-  // Average price
-  const averagePrice = soldProducts.length > 0 
-    ? soldProducts.reduce((sum, p) => sum + Number(p.price), 0) / soldProducts.length 
-    : 0;
-
-  console.log('✅ Analytics calculated successfully');
-
-  return NextResponse.json({
+  // Base response with basic analytics
+  const response: {
+    success: boolean;
+    tier: string;
+    accessLevel: typeof accessLevel;
+    analytics: {
+      overview: {
+        totalEarnings: number;
+        activeListings: number;
+        soldItems: number;
+        totalViews: number;
+        averagePrice: number;
+      };
+      topCategories?: Array<{ name: string; count: number; earnings: number }>;
+      salesTrend?: Array<{ date: string; amount: number }>;
+      recentListings?: Array<{
+        id: string;
+        title: string;
+        price: number;
+        images: string[];
+        status: string;
+        views: number;
+        created_at: string;
+      }>;
+      demandInsights?: {
+        trendingCategories: Array<{ category: string; growth: number }>;
+        peakHours: Array<{ hour: number; viewCount: number }>;
+        priceRecommendations: Array<{ category: string; avgPrice: number; yourAvg: number }>;
+      };
+    };
+  } = {
     success: true,
+    tier: userTier,
+    accessLevel,
     analytics: {
       overview: {
         totalEarnings,
         activeListings: activeListings.length,
         soldItems: soldProducts.length,
         totalViews,
-        averagePrice,
+        averagePrice: soldProducts.length > 0 
+          ? soldProducts.reduce((sum, p) => sum + Number(p.price), 0) / soldProducts.length 
+          : 0,
       },
-      topCategories,
-      salesTrend,
-      recentListings: activeListings.slice(0, 5).map(p => ({
-        id: p.id,
-        title: p.title,
-        price: p.price,
-        images: p.images,
-        status: p.status,
-        views: p.view_count || 0,
-        created_at: p.created_at,
-      })),
     },
-  });
+  };
+
+  // Advanced analytics for Growth+ tiers
+  if (accessLevel.hasAdvanced) {
+    // Calculate best-selling categories (top 5)
+    const categorySales: Record<string, { count: number; earnings: number }> = {};
+    soldProducts.forEach(product => {
+      const category = product.subcategory || product.category;
+      if (!categorySales[category]) {
+        categorySales[category] = { count: 0, earnings: 0 };
+      }
+      categorySales[category].count += 1;
+      categorySales[category].earnings += Number(product.price);
+    });
+
+    response.analytics.topCategories = Object.entries(categorySales)
+      .map(([name, data]) => ({ name, ...data }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 5);
+
+    // Recent sales (last 30 days grouped by week)
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+    const recentSales = soldProducts
+      .filter(p => new Date(p.updated_at) >= thirtyDaysAgo)
+      .sort((a, b) => new Date(a.updated_at).getTime() - new Date(b.updated_at).getTime());
+
+    // Group sales by week
+    const salesByWeek: Record<string, number> = {};
+    recentSales.forEach(product => {
+      const date = new Date(product.updated_at);
+      const weekStart = new Date(date);
+      weekStart.setDate(date.getDate() - date.getDay());
+      const weekKey = weekStart.toISOString().split('T')[0];
+      
+      salesByWeek[weekKey] = (salesByWeek[weekKey] || 0) + Number(product.price);
+    });
+
+    response.analytics.salesTrend = Object.entries(salesByWeek).map(([date, amount]) => ({
+      date,
+      amount,
+    }));
+
+    response.analytics.recentListings = activeListings.slice(0, 5).map(p => ({
+      id: p.id,
+      title: p.title,
+      price: p.price,
+      images: p.images,
+      status: p.status,
+      views: p.view_count || 0,
+      created_at: p.created_at,
+    }));
+  }
+
+  // Demand insights for Pro tier
+  if (accessLevel.hasDemandInsights && serviceSupabase) {
+    try {
+      // Get trending categories from all products on the platform
+      const { data: allProducts } = await serviceSupabase
+        .from('products')
+        .select('category, subcategory, view_count, price, created_at')
+        .eq('status', 'active')
+        .gte('created_at', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString());
+
+      if (allProducts && allProducts.length > 0) {
+        // Calculate trending categories by view growth
+        const categoryViews: Record<string, number> = {};
+        allProducts.forEach((p: { category: string; subcategory?: string; view_count?: number }) => {
+          const cat = p.subcategory || p.category;
+          categoryViews[cat] = (categoryViews[cat] || 0) + (p.view_count || 0);
+        });
+
+        const trendingCategories = Object.entries(categoryViews)
+          .map(([category, views]) => ({ category, growth: views }))
+          .sort((a, b) => b.growth - a.growth)
+          .slice(0, 5);
+
+        // Price recommendations based on market average
+        const categoryPrices: Record<string, number[]> = {};
+        allProducts.forEach((p: { category: string; subcategory?: string; price: number }) => {
+          const cat = p.subcategory || p.category;
+          if (!categoryPrices[cat]) categoryPrices[cat] = [];
+          categoryPrices[cat].push(p.price);
+        });
+
+        // Get user's average prices per category
+        const userCategoryPrices: Record<string, number[]> = {};
+        typedProducts.forEach(p => {
+          const cat = p.subcategory || p.category;
+          if (!userCategoryPrices[cat]) userCategoryPrices[cat] = [];
+          userCategoryPrices[cat].push(p.price);
+        });
+
+        const priceRecommendations = Object.keys(userCategoryPrices)
+          .filter(cat => categoryPrices[cat])
+          .map(cat => ({
+            category: cat,
+            avgPrice: Math.round(categoryPrices[cat].reduce((a, b) => a + b, 0) / categoryPrices[cat].length),
+            yourAvg: Math.round(userCategoryPrices[cat].reduce((a, b) => a + b, 0) / userCategoryPrices[cat].length),
+          }))
+          .slice(0, 5);
+
+        response.analytics.demandInsights = {
+          trendingCategories,
+          peakHours: [], // Could be calculated from view timestamps if we had that data
+          priceRecommendations,
+        };
+      }
+    } catch (error) {
+      console.error('Error calculating demand insights:', error);
+    }
+  }
+
+  console.log('✅ Analytics calculated successfully');
+  return NextResponse.json(response);
 }
 

@@ -111,6 +111,34 @@ export async function GET(
       totalViews = count || 0;
     }
 
+    // Get seller's subscription plan
+    let sellerPlan = {
+      tier_id: 'free',
+      tier_name: 'Free',
+      is_active: true,
+      is_pro: false,
+      is_featured: false,
+    };
+    
+    try {
+      const { data: planData } = await supabase
+        .rpc('get_seller_plan', { p_seller_id: id });
+      
+      if (planData && planData[0]) {
+        const plan = planData[0];
+        sellerPlan = {
+          tier_id: plan.tier_id || 'free',
+          tier_name: plan.tier_name || 'Free',
+          is_active: plan.is_active ?? true,
+          is_pro: plan.tier_id === 'pro',
+          is_featured: plan.tier_id === 'pro' || plan.tier_id === 'growth',
+        };
+      }
+    } catch (planError) {
+      console.error('Error fetching seller plan:', planError);
+      // Default to free plan on error
+    }
+
     return NextResponse.json({
       data: {
         ...seller,
@@ -120,6 +148,7 @@ export async function GET(
         follower_count: followerCount || 0,
         total_views: totalViews || 0,
         is_following: isFollowing,
+        seller_plan: sellerPlan,
         listings: listings || [],
         listings_pagination: {
           page: listingsPage,
