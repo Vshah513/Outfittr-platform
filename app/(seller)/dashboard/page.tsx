@@ -20,6 +20,8 @@ export default function DashboardPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [markingAsSold, setMarkingAsSold] = useState<string | null>(null);
   const [markingAsActive, setMarkingAsActive] = useState<string | null>(null);
+  const [relistingProduct, setRelistingProduct] = useState<string | null>(null);
+  const [userTier, setUserTier] = useState<string>('free');
   const [stats, setStats] = useState({
     activeListings: 0,
     totalViews: 0,
@@ -36,8 +38,54 @@ export default function DashboardPage() {
   useEffect(() => {
     if (user) {
       fetchSellerProducts();
+      fetchUserTier();
     }
   }, [user]);
+
+  const fetchUserTier = async () => {
+    try {
+      const response = await fetch('/api/subscriptions');
+      if (response.ok) {
+        const data = await response.json();
+        setUserTier(data.plan?.tier_id || 'free');
+      }
+    } catch (error) {
+      console.error('Error fetching user tier:', error);
+    }
+  };
+
+  const canRelist = ['growth', 'pro'].includes(userTier);
+
+  const relistProduct = async (productId: string) => {
+    if (!confirm('Create a new listing based on this sold item?')) {
+      return;
+    }
+
+    setRelistingProduct(productId);
+    try {
+      const response = await fetch(`/api/products/${productId}/relist`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        // Dispatch event to notify PlanLimitsBanner to refetch
+        window.dispatchEvent(new CustomEvent('listing-changed'));
+        alert(`Product relisted successfully! New listing created.`);
+        await fetchSellerProducts();
+        router.push(`/product/${data.newProduct.id}`);
+      } else {
+        const errorData = await response.json();
+        alert(`Failed to relist: ${errorData.error || 'Unknown error'}`);
+      }
+    } catch (error) {
+      console.error('Error relisting product:', error);
+      alert('Failed to relist product. Please try again.');
+    } finally {
+      setRelistingProduct(null);
+    }
+  };
 
   const fetchSellerProducts = async () => {
     setIsLoading(true);
@@ -45,6 +93,9 @@ export default function DashboardPage() {
       // Fetch active products
       const response = await fetch(`/api/sellers/${user?.id}?tab=active`);
       const data = await response.json();
+      
+      // Trigger PlanLimitsBanner to refetch to stay in sync
+      window.dispatchEvent(new CustomEvent('listing-changed'));
       
       if (response.ok && data.data) {
         const sellerData = data.data;
@@ -124,6 +175,8 @@ export default function DashboardPage() {
       });
 
       if (response.ok) {
+        // Dispatch event to notify PlanLimitsBanner to refetch
+        window.dispatchEvent(new CustomEvent('listing-changed'));
         // Refresh the data to update listings and earnings
         // Small delay to ensure database triggers have processed
         setTimeout(async () => {
@@ -157,6 +210,8 @@ export default function DashboardPage() {
       });
 
       if (response.ok) {
+        // Dispatch event to notify PlanLimitsBanner to refetch
+        window.dispatchEvent(new CustomEvent('listing-changed'));
         // Refresh the data to update listings and earnings
         // Small delay to ensure database triggers have processed
         setTimeout(async () => {
@@ -200,6 +255,20 @@ export default function DashboardPage() {
                 Manage Plan
               </Button>
             </Link>
+            {userTier === 'pro' && (
+              <Link href="/insights">
+                <Button variant="outline" size="lg" className="border-purple-300 text-purple-600 hover:bg-purple-50">
+                  Insights
+                </Button>
+              </Link>
+            )}
+            {canRelist && (
+              <Link href="/listings/bulk">
+                <Button variant="outline" size="lg">
+                  Bulk Upload
+                </Button>
+              </Link>
+            )}
             <Link href="/listings/new">
               <Button variant="primary" size="lg">
                 + New Listing
@@ -355,6 +424,16 @@ export default function DashboardPage() {
                       <Link href={`/product/${product.id}`}>
                         <Button variant="outline" size="sm">View</Button>
                       </Link>
+                      {canRelist && (
+                        <Button 
+                          variant="primary" 
+                          size="sm"
+                          onClick={() => relistProduct(product.id)}
+                          disabled={relistingProduct === product.id}
+                        >
+                          {relistingProduct === product.id ? 'Relisting...' : 'Relist'}
+                        </Button>
+                      )}
                       <Button 
                         variant="outline" 
                         size="sm"
@@ -362,7 +441,7 @@ export default function DashboardPage() {
                         disabled={markingAsActive === product.id}
                         className="text-orange-600 hover:text-orange-700 hover:bg-orange-50"
                       >
-                        {markingAsActive === product.id ? 'Undoing...' : 'Did you mark this by accident? Undo'}
+                        {markingAsActive === product.id ? 'Undoing...' : 'Undo'}
                       </Button>
                     </div>
                   </div>

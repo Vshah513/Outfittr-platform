@@ -34,31 +34,56 @@ export function PlanLimitsBanner() {
   const [tiers, setTiers] = useState<SubscriptionTier[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchPlan = async () => {
-      try {
-        const [planResponse, tiersResponse] = await Promise.all([
-          fetch('/api/subscriptions'),
-          fetch('/api/subscriptions/tiers'),
-        ]);
-        
-        if (planResponse.ok) {
-          const planData = await planResponse.json();
-          setData(planData);
-        }
-        
-        if (tiersResponse.ok) {
-          const tiersData = await tiersResponse.json();
-          setTiers(tiersData.tiers || []);
-        }
-      } catch (error) {
-        console.error('Error fetching plan:', error);
-      } finally {
-        setIsLoading(false);
+  const fetchPlan = async () => {
+    try {
+      // Add cache-busting to ensure fresh data
+      const timestamp = Date.now();
+      const [planResponse, tiersResponse] = await Promise.all([
+        fetch(`/api/subscriptions?_t=${timestamp}`, { cache: 'no-store' }),
+        fetch(`/api/subscriptions/tiers?_t=${timestamp}`, { cache: 'no-store' }),
+      ]);
+      
+      if (planResponse.ok) {
+        const planData = await planResponse.json();
+        console.log('[PlanLimitsBanner] Fetched plan data:', planData);
+        setData(planData);
+      } else {
+        console.error('[PlanLimitsBanner] Failed to fetch plan:', await planResponse.text());
       }
+      
+      if (tiersResponse.ok) {
+        const tiersData = await tiersResponse.json();
+        setTiers(tiersData.tiers || []);
+      }
+    } catch (error) {
+      console.error('Error fetching plan:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchPlan();
+
+    // Listen for listing changes
+    const handleListingChange = () => {
+      fetchPlan();
     };
 
-    fetchPlan();
+    // Listen for custom event when listings are created/updated/deleted
+    window.addEventListener('listing-changed', handleListingChange);
+    
+    // Refetch when window gains focus (in case user navigated back from listing creation)
+    const handleFocus = () => {
+      fetchPlan();
+    };
+    window.addEventListener('focus', handleFocus);
+
+    // Cleanup
+    return () => {
+      window.removeEventListener('listing-changed', handleListingChange);
+      window.removeEventListener('focus', handleFocus);
+    };
   }, []);
 
   if (isLoading) {

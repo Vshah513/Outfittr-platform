@@ -124,14 +124,40 @@ export async function GET(request: NextRequest) {
       throw queryError;
     }
 
-    // Sort boosted products to the top (client-side since Supabase doesn't support ordering by joined table)
+    // Get seller plan data for priority sorting (Base+ tiers get priority)
+    const sellerIds = [...new Set((data || []).map((p: Record<string, unknown>) => p.seller_id as string))];
+    let sellerPlans: Record<string, string> = {};
+    
+    if (sellerIds.length > 0) {
+      const { data: plansData } = await supabase
+        .from('seller_plans')
+        .select('seller_id, tier_id, current_period_end')
+        .in('seller_id', sellerIds);
+      
+      if (plansData) {
+        const now = new Date();
+        plansData.forEach((plan: { seller_id: string; tier_id: string; current_period_end: string | null }) => {
+          // Only count active paid plans
+          const isActive = plan.tier_id === 'free' || 
+            (plan.current_period_end && new Date(plan.current_period_end) > now);
+          if (isActive) {
+            sellerPlans[plan.seller_id] = plan.tier_id;
+          }
+        });
+      }
+    }
+
+    // Priority order: pro > growth > base > free
+    const tierPriority: Record<string, number> = { 'pro': 4, 'growth': 3, 'base': 2, 'free': 1 };
+
+    // Sort boosted products to the top, then by seller tier (Priority in Search feature)
     const sortedData = (data || []).sort((a: Record<string, unknown>, b: Record<string, unknown>) => {
       const aBoost = a.active_boost as Array<{ boost_type: string }> | null;
       const bBoost = b.active_boost as Array<{ boost_type: string }> | null;
       const aHasBoost = aBoost && aBoost.length > 0;
       const bHasBoost = bBoost && bBoost.length > 0;
       
-      // Featured (homepage_carousel) first, then top_category, then non-boosted
+      // Featured (homepage_carousel) first, then top_category boosts
       if (aHasBoost && !bHasBoost) return -1;
       if (!aHasBoost && bHasBoost) return 1;
       if (aHasBoost && bHasBoost) {
@@ -140,17 +166,35 @@ export async function GET(request: NextRequest) {
         if (aFeatured && !bFeatured) return -1;
         if (!aFeatured && bFeatured) return 1;
       }
+      
+      // Priority in Search: Paid sellers (Base+) appear before free sellers
+      const aTier = sellerPlans[a.seller_id as string] || 'free';
+      const bTier = sellerPlans[b.seller_id as string] || 'free';
+      const aPriority = tierPriority[aTier] || 1;
+      const bPriority = tierPriority[bTier] || 1;
+      
+      if (aPriority !== bPriority) {
+        return bPriority - aPriority; // Higher priority first
+      }
+      
       return 0;
     });
 
-    // Transform data to include isBoosted flag
+    // Transform data to include isBoosted flag and seller tier info
     const transformedData = sortedData.map((product: Record<string, unknown>) => {
       const boosts = product.active_boost as Array<{ boost_type: string }> | null;
+      const sellerId = product.seller_id as string;
+      const sellerTier = sellerPlans[sellerId] || 'free';
+      
       return {
         ...product,
         is_boosted: boosts && boosts.length > 0,
         boost_type: boosts?.[0]?.boost_type || null,
         active_boost: undefined, // Remove the raw boost data
+        // Seller tier info for displaying badges (Growth+ get trending badge eligibility)
+        seller_tier: sellerTier,
+        is_featured_seller: sellerTier === 'pro',
+        is_trending_eligible: sellerTier === 'pro' || sellerTier === 'growth',
       };
     });
 

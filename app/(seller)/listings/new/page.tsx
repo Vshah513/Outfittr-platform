@@ -263,6 +263,9 @@ export default function NewListingPage() {
         throw new Error(productData.error || 'Failed to create listing');
       }
 
+      // Dispatch event to notify PlanLimitsBanner to refetch
+      window.dispatchEvent(new CustomEvent('listing-changed'));
+
       router.push('/dashboard');
     } catch (err: any) {
       setError(err.message);
