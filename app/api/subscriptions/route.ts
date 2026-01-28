@@ -66,8 +66,15 @@ export async function GET(request: NextRequest) {
     console.log('Returning plan:', plan);
 
     // Get current listing count
-    const { data: canCreate } = await supabase
+    const { data: canCreate, error: canCreateError } = await supabase
       .rpc('can_seller_create_listing', { p_seller_id: user.id });
+
+    // Debug logging
+    console.log('[API /subscriptions] can_seller_create_listing result:', { 
+      userId: user.id, 
+      canCreate, 
+      canCreateError 
+    });
 
     const usage = canCreate?.[0] || {
       current_count: 0,
@@ -77,6 +84,12 @@ export async function GET(request: NextRequest) {
 
     const limit = usage.listing_limit || plan.active_listings_limit || 7;
     const percentage = limit ? Math.round((usage.current_count / limit) * 100) : 0;
+
+    console.log('[API /subscriptions] Returning usage:', {
+      current_listings: usage.current_count,
+      limit,
+      percentage,
+    });
 
     return NextResponse.json({
       plan: {

@@ -70,6 +70,8 @@ export default function DashboardPage() {
 
       if (response.ok) {
         const data = await response.json();
+        // Dispatch event to notify PlanLimitsBanner to refetch
+        window.dispatchEvent(new CustomEvent('listing-changed'));
         alert(`Product relisted successfully! New listing created.`);
         await fetchSellerProducts();
         router.push(`/product/${data.newProduct.id}`);
@@ -91,6 +93,9 @@ export default function DashboardPage() {
       // Fetch active products
       const response = await fetch(`/api/sellers/${user?.id}?tab=active`);
       const data = await response.json();
+      
+      // Trigger PlanLimitsBanner to refetch to stay in sync
+      window.dispatchEvent(new CustomEvent('listing-changed'));
       
       if (response.ok && data.data) {
         const sellerData = data.data;
@@ -170,6 +175,8 @@ export default function DashboardPage() {
       });
 
       if (response.ok) {
+        // Dispatch event to notify PlanLimitsBanner to refetch
+        window.dispatchEvent(new CustomEvent('listing-changed'));
         // Refresh the data to update listings and earnings
         // Small delay to ensure database triggers have processed
         setTimeout(async () => {
@@ -203,6 +210,8 @@ export default function DashboardPage() {
       });
 
       if (response.ok) {
+        // Dispatch event to notify PlanLimitsBanner to refetch
+        window.dispatchEvent(new CustomEvent('listing-changed'));
         // Refresh the data to update listings and earnings
         // Small delay to ensure database triggers have processed
         setTimeout(async () => {
