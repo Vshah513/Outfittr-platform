@@ -78,6 +78,13 @@ export interface User {
   total_sales?: number;
   is_admin?: boolean;
   created_at: string;
+  // Seller payout fields
+  paystack_subaccount_code?: string;
+  payout_bank_code?: string;
+  payout_account_number?: string;
+  payout_account_name?: string;
+  payout_bank_name?: string;
+  seller_onboarded_at?: string;
 }
 
 export interface Message {
@@ -358,7 +365,7 @@ export interface ProductBoost {
 }
 
 // Payment transactions
-export type PaymentType = 'subscription' | 'boost';
+export type PaymentType = 'subscription' | 'boost' | 'purchase';
 export type PaymentProvider = 'paystack';
 export type PaymentStatus = 'pending' | 'completed' | 'failed' | 'refunded';
 
@@ -422,6 +429,56 @@ export const SUBSCRIPTION_TIERS: Record<SubscriptionTierId, SubscriptionTier> = 
     ],
   },
 };
+
+// =============================================
+// ORDER / PURCHASE TYPES
+// =============================================
+
+export type OrderStatus = 'pending' | 'completed' | 'failed' | 'refunded';
+
+export interface Order {
+  id: string;
+  product_id: string;
+  buyer_id: string;
+  seller_id: string;
+  amount_kes: number;
+  platform_commission_kes: number;
+  seller_amount_kes: number;
+  paystack_reference: string;
+  paystack_transaction_id?: string;
+  paystack_subaccount_code?: string;
+  payment_channel?: string;
+  status: OrderStatus;
+  paid_at?: string;
+  created_at: string;
+  updated_at: string;
+  // Populated via joins
+  product?: Product;
+  buyer?: User;
+  seller?: User;
+}
+
+export interface SellerPayoutInfo {
+  paystack_subaccount_code?: string;
+  payout_bank_code?: string;
+  payout_account_number?: string;
+  payout_account_name?: string;
+  payout_bank_name?: string;
+  seller_onboarded_at?: string;
+}
+
+export interface KenyanBank {
+  name: string;
+  slug: string;
+  code: string;
+  country: string;
+  currency: string;
+  type: string;
+  active: boolean;
+}
+
+// Platform commission rate (5%)
+export const PLATFORM_COMMISSION_RATE = 0.05;
 
 // Boost package constants
 export const BOOST_PACKAGES: Record<BoostPackageId, BoostPackage> = {

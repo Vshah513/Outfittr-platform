@@ -1,8 +1,12 @@
 import { createBrowserClient, createServerClient } from '@supabase/ssr';
 import { NextRequest } from 'next/server';
 
-// Browser client for client components
-export function createSupabaseClient() {
+const hasSupabaseConfig = () =>
+  Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
+
+// Browser client for client components (returns null if Supabase env is not set)
+export function createSupabaseClient(): ReturnType<typeof createBrowserClient> | null {
+  if (!hasSupabaseConfig()) return null;
   return createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
@@ -11,6 +15,9 @@ export function createSupabaseClient() {
 
 // Server client for API routes and server components
 export async function createSupabaseServerClient(request?: NextRequest) {
+  if (!hasSupabaseConfig()) {
+    throw new Error('Supabase URL and anon key are not configured. Add NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY to .env.local');
+  }
   if (request) {
     // For API routes - extract cookies from request
     return createServerClient(
@@ -88,6 +95,7 @@ export async function getAuthenticatedUser(request: NextRequest) {
 // Client-side auth actions
 export async function signInWithGoogle(returnUrl?: string) {
   const supabase = createSupabaseClient();
+  if (!supabase) return { error: 'Auth is not configured. Add Supabase env vars to .env.local' };
   const redirectUrl = returnUrl 
     ? `${process.env.NEXT_PUBLIC_SITE_URL}/api/auth/callback?returnUrl=${encodeURIComponent(returnUrl)}`
     : `${process.env.NEXT_PUBLIC_SITE_URL}/api/auth/callback`;
@@ -109,6 +117,7 @@ export async function signInWithGoogle(returnUrl?: string) {
 
 export async function signInWithFacebook(returnUrl?: string) {
   const supabase = createSupabaseClient();
+  if (!supabase) return { error: 'Auth is not configured. Add Supabase env vars to .env.local' };
   const redirectUrl = returnUrl 
     ? `${process.env.NEXT_PUBLIC_SITE_URL}/api/auth/callback?returnUrl=${encodeURIComponent(returnUrl)}`
     : `${process.env.NEXT_PUBLIC_SITE_URL}/api/auth/callback`;
@@ -130,6 +139,7 @@ export async function signInWithFacebook(returnUrl?: string) {
 
 export async function signInWithMagicLink(email: string, returnUrl?: string) {
   const supabase = createSupabaseClient();
+  if (!supabase) return { error: 'Auth is not configured. Add Supabase env vars to .env.local' };
   const redirectUrl = returnUrl 
     ? `${process.env.NEXT_PUBLIC_SITE_URL}/api/auth/callback?returnUrl=${encodeURIComponent(returnUrl)}`
     : `${process.env.NEXT_PUBLIC_SITE_URL}/api/auth/callback`;
@@ -197,7 +207,7 @@ export async function signInWithEmail(
 ): Promise<{ error: string | null }> {
   try {
     const supabase = createSupabaseClient();
-    
+    if (!supabase) return { error: 'Auth is not configured. Add Supabase env vars to .env.local' };
     // Use Supabase's native signInWithPassword for proper session handling
     const { data, error } = await supabase.auth.signInWithPassword({
       email: email.toLowerCase(),
@@ -249,6 +259,7 @@ export async function sendPasswordResetEmail(
 
 export async function signOut() {
   const supabase = createSupabaseClient();
+  if (!supabase) return { error: null };
   const { error } = await supabase.auth.signOut();
   
   if (error) {

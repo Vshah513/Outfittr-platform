@@ -3,14 +3,13 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { createSupabaseClient } from '@/lib/auth';
+import type { Session } from '@supabase/supabase-js';
 import type { User } from '@/types';
 
 export type PendingAction = 
   | { type: 'follow'; sellerId: string }
   | { type: 'save'; productId: string }
-  | { type: 'message'; sellerId: string; productId?: string }
-  | { type: 'sell' }
-  | { type: 'messages' };
+  | { type: 'sell' };
 
 export type ModalStep = 'initial' | 'forgot-password' | 'reset-sent' | 'success' | 'new-password';
 
@@ -62,9 +61,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Fetch user on mount
     fetchUser();
 
-    // Listen to Supabase auth state changes
+    // Listen to Supabase auth state changes (skip if Supabase not configured)
     const supabase = createSupabaseClient();
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+    if (!supabase) return;
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event: string, session: Session | null) => {
       console.log('Auth state changed:', event, session?.user?.id);
       
       if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
@@ -103,20 +104,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               console.log('Item saved automatically after login');
               break;
             
-            case 'message':
-              if (pendingAction.productId) {
-                router.push(`/product/${pendingAction.productId}?openMessage=true`);
-              } else {
-                router.push('/messages');
-              }
-              break;
-            
             case 'sell':
               router.push('/listings/new');
-              break;
-            
-            case 'messages':
-              router.push('/messages');
               break;
           }
         } catch (error) {

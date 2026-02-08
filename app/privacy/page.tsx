@@ -29,7 +29,6 @@ export default function PrivacyPage() {
               <ul className="list-disc list-inside space-y-2 ml-4">
                 <li><strong>Account Information:</strong> Email, phone number, username, display name, profile photo</li>
                 <li><strong>Listing Information:</strong> Product descriptions, photos, prices, location</li>
-                <li><strong>Communication Data:</strong> Messages between buyers and sellers</li>
                 <li><strong>Payment Information:</strong> Processed securely through third-party providers (Paystack)</li>
               </ul>
               <p className="mt-4 mb-2">We automatically collect:</p>

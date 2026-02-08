@@ -8,7 +8,11 @@ export async function GET(request: NextRequest) {
   const returnUrl = requestUrl.searchParams.get('returnUrl');
 
   if (code) {
-    // Exchange code for session
+    // Create response first so we can set cookies on it
+    const redirectTo = returnUrl ? `${requestUrl.origin}${returnUrl}` : `${requestUrl.origin}/marketplace`;
+    const response = NextResponse.redirect(redirectTo);
+
+    // Exchange code for session with proper cookie handling
     const supabase = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -18,10 +22,21 @@ export async function GET(request: NextRequest) {
             return request.cookies.get(name)?.value;
           },
           set(name: string, value: string, options: any) {
-            // We'll set cookies via response headers
+            // Set cookies on the response (NOT httpOnly so client can read them)
+            response.cookies.set({
+              name,
+              value,
+              ...options,
+              httpOnly: false, // Allow client-side access for Supabase auth
+            });
           },
           remove(name: string, options: any) {
-            // We'll remove cookies via response headers
+            response.cookies.set({
+              name,
+              value: '',
+              ...options,
+              maxAge: 0,
+            });
           },
         },
       }
@@ -71,24 +86,6 @@ export async function GET(request: NextRequest) {
           }
         }
       }
-
-      // Create response and set cookies
-      const response = NextResponse.redirect(
-        returnUrl ? `${requestUrl.origin}${returnUrl}` : `${requestUrl.origin}/marketplace`
-      );
-
-      // Set Supabase auth cookies
-      const cookieOptions = {
-        path: '/',
-        sameSite: 'lax' as const,
-        secure: process.env.NODE_ENV === 'production',
-        httpOnly: true,
-        maxAge: 60 * 60 * 24 * 7, // 7 days
-      };
-
-      // Supabase sets its own cookies, but we'll make sure they're persisted
-      data.session && response.cookies.set('sb-access-token', data.session.access_token, cookieOptions);
-      data.session && response.cookies.set('sb-refresh-token', data.session.refresh_token, cookieOptions);
 
       return response;
     }

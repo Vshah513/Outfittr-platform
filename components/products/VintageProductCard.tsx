@@ -160,18 +160,6 @@ export default function VintageProductCard({
                     </p>
                   )}
                 </div>
-                
-                <button 
-                  className="btn-vintage-primary text-xs px-4 py-2"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    // Navigate to product page with message intent
-                    window.location.href = `/product/${product.id}?action=message`;
-                  }}
-                >
-                  Message Seller
-                </button>
               </div>
             </div>
           )}

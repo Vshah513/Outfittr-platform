@@ -92,6 +92,9 @@ export async function POST(request: NextRequest) {
         const boostPackageId = meta.boost_package_id as BoostPackageId;
         await activateBoost(supabase, userId, productId, boostPackageId, transaction?.id);
         console.log(`Boost activated via webhook: ${productId} -> ${boostPackageId}`);
+      } else if (paymentType === 'purchase') {
+        await completePurchase(supabase, reference, data);
+        console.log(`Purchase completed via webhook: ${reference}`);
       }
 
       return NextResponse.json({ received: true });
@@ -339,3 +342,99 @@ async function activateBoost(
   });
 }
 
+/**
+ * Complete a purchase after successful payment
+ * Updates the order, marks the product as sold, and increments seller sales
+ */
+async function completePurchase(
+  supabase: ReturnType<typeof getServiceSupabase>,
+  reference: string,
+  paystackData: Record<string, unknown>
+) {
+  if (!supabase) return;
+
+  // Find the order by paystack reference
+  const { data: order, error: orderError } = await supabase
+    .from('orders')
+    .select('*')
+    .eq('paystack_reference', reference)
+    .single();
+
+  if (orderError || !order) {
+    console.error('Order not found for purchase reference:', reference, orderError);
+    return;
+  }
+
+  // Skip if already completed (idempotency)
+  if (order.status === 'completed') {
+    console.log('Order already completed, skipping:', order.id);
+    return;
+  }
+
+  const transactionId = paystackData.id?.toString() || null;
+  const channel = (paystackData.channel as string) || null;
+
+  // Update order to completed
+  const { error: updateError } = await supabase
+    .from('orders')
+    .update({
+      status: 'completed',
+      paystack_transaction_id: transactionId,
+      payment_channel: channel,
+      paid_at: new Date().toISOString(),
+    })
+    .eq('id', order.id);
+
+  if (updateError) {
+    console.error('Error updating order:', updateError);
+    return;
+  }
+
+  // Mark product as sold with the buyer's ID
+  const { error: productError } = await supabase
+    .from('products')
+    .update({
+      status: 'sold',
+      sold_to_id: order.buyer_id,
+      sold_at: new Date().toISOString(),
+    })
+    .eq('id', order.product_id)
+    .eq('status', 'active'); // Only if still active (prevent double-sell)
+
+  if (productError) {
+    console.error('Error marking product as sold:', productError);
+  }
+
+  // Increment seller's total_sales count
+  const { error: sellerError } = await supabase.rpc('increment_total_sales', {
+    p_seller_id: order.seller_id,
+  });
+
+  // If the RPC doesn't exist, fall back to direct update
+  if (sellerError) {
+    console.log('RPC increment_total_sales not available, updating directly');
+    const { data: seller } = await supabase
+      .from('users')
+      .select('total_sales')
+      .eq('id', order.seller_id)
+      .single();
+
+    await supabase
+      .from('users')
+      .update({ total_sales: (seller?.total_sales || 0) + 1 })
+      .eq('id', order.seller_id);
+  }
+
+  // Log the split amounts for audit
+  const splitData = paystackData.split as Record<string, unknown> | undefined;
+  if (splitData) {
+    console.log('Payment split details:', {
+      orderId: order.id,
+      reference,
+      formula: splitData.formula,
+      shares: splitData.shares,
+    });
+  }
+
+  console.log(`Purchase completed: order=${order.id}, product=${order.product_id}, buyer=${order.buyer_id}, seller=${order.seller_id}, amount=${order.amount_kes} KES`);
+}

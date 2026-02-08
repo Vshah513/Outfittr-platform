@@ -7,14 +7,12 @@ import { Button } from '@/components/ui/Button';
 import { Card, CardContent, CardHeader } from '@/components/ui/Card';
 import { formatPrice } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
-import { useMessageCount } from '@/hooks/useMessageCount';
 import { PlanLimitsBanner } from '@/components/monetization/PlanLimitsBanner';
 import { BoostButton } from '@/components/monetization/BoostButton';
 
 export default function DashboardPage() {
   const router = useRouter();
   const { user, isLoading: authLoading } = useAuth();
-  const { count: messageCount } = useMessageCount();
   const [products, setProducts] = useState<any[]>([]);
   const [soldProducts, setSoldProducts] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -225,12 +223,6 @@ export default function DashboardPage() {
             <CardContent className="pt-6">
               <div className="text-3xl font-bold text-blue-600">{stats.totalViews}</div>
               <div className="text-gray-600 mt-1">Total Views</div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="pt-6">
-              <div className="text-3xl font-bold text-purple-600">{messageCount}</div>
-              <div className="text-gray-600 mt-1">Messages</div>
             </CardContent>
           </Card>
           <Card>

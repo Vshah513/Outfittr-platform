@@ -128,6 +128,17 @@ export async function GET(request: NextRequest) {
         if (!activationResult.success) {
           console.error('Failed to activate boost:', activationResult.error);
         }
+      } else if (paymentType === 'purchase') {
+        const purchaseResult = await completePurchaseVerify(supabase, transaction.paystack_reference, verification.data);
+        if (!purchaseResult.success) {
+          console.error('Failed to complete purchase:', purchaseResult.error);
+          return NextResponse.json({
+            status: 'error',
+            message: 'Payment verified but order completion failed. Please contact support.',
+            transaction: { ...transaction, status: 'completed' },
+            error: purchaseResult.error,
+          });
+        }
       }
 
       return NextResponse.json({
@@ -216,6 +227,80 @@ async function activateSubscription(
   }
 
   console.log(`Subscription activated for user ${userId}: ${tierId}`, data);
+  return { success: true };
+}
+
+/**
+ * Complete a purchase after successful payment verification
+ */
+async function completePurchaseVerify(
+  supabase: ReturnType<typeof getServiceSupabase>,
+  reference: string,
+  paystackData: { id: number; channel: string; [key: string]: unknown }
+): Promise<{ success: boolean; error?: string }> {
+  if (!supabase) {
+    return { success: false, error: 'Database not configured' };
+  }
+
+  // Find the order by paystack reference
+  const { data: order, error: orderError } = await supabase
+    .from('orders')
+    .select('*')
+    .eq('paystack_reference', reference)
+    .single();
+
+  if (orderError || !order) {
+    return { success: false, error: 'Order not found' };
+  }
+
+  // Skip if already completed (idempotent)
+  if (order.status === 'completed') {
+    return { success: true };
+  }
+
+  // Update order to completed
+  const { error: updateError } = await supabase
+    .from('orders')
+    .update({
+      status: 'completed',
+      paystack_transaction_id: paystackData.id.toString(),
+      payment_channel: paystackData.channel || null,
+      paid_at: new Date().toISOString(),
+    })
+    .eq('id', order.id);
+
+  if (updateError) {
+    return { success: false, error: updateError.message };
+  }
+
+  // Mark product as sold
+  const { error: productError } = await supabase
+    .from('products')
+    .update({
+      status: 'sold',
+      sold_to_id: order.buyer_id,
+      sold_at: new Date().toISOString(),
+    })
+    .eq('id', order.product_id)
+    .eq('status', 'active');
+
+  if (productError) {
+    console.error('Error marking product as sold:', productError);
+  }
+
+  // Increment seller's total_sales count
+  const { data: seller } = await supabase
+    .from('users')
+    .select('total_sales')
+    .eq('id', order.seller_id)
+    .single();
+
+  await supabase
+    .from('users')
+    .update({ total_sales: (seller?.total_sales || 0) + 1 })
+    .eq('id', order.seller_id);
+
+  console.log(`Purchase completed via verify: order=${order.id}, product=${order.product_id}`);
   return { success: true };
 }
 

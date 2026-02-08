@@ -7,20 +7,71 @@ import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
 import { signOut } from '@/lib/auth';
 import ProfileDropdown from './ProfileDropdown';
-import { useUnreadMessageCount } from '@/hooks/useUnreadMessageCount';
 import SellerLeaderboardModal from '@/components/leaderboard/SellerLeaderboardModal';
 
 export default function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
   const { user, openAuthModal } = useAuth();
-  const { count: unreadCount } = useUnreadMessageCount();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [showLeaderboardModal, setShowLeaderboardModal] = useState(false);
   const profileRef = useRef<HTMLDivElement>(null);
+  
+  // Typing placeholder animation state
+  const [isSearchFocused, setIsSearchFocused] = useState(false);
+  const [animatedPlaceholder, setAnimatedPlaceholder] = useState('');
+  
+  // Typing animation effect
+  useEffect(() => {
+    const phrases = ['sweaters', 'vintage jackets', 'tshirts', 'baggy jeans'];
+    const prefix = 'Search for ';
+    let phraseIndex = 0;
+    let charIndex = 0;
+    let isDeleting = false;
+    let timeoutId: NodeJS.Timeout;
+    
+    const type = () => {
+      const currentPhrase = phrases[phraseIndex];
+      
+      if (isDeleting) {
+        // Deleting characters
+        charIndex--;
+        setAnimatedPlaceholder(prefix + currentPhrase.substring(0, charIndex));
+        
+        if (charIndex === 0) {
+          isDeleting = false;
+          phraseIndex = (phraseIndex + 1) % phrases.length;
+          timeoutId = setTimeout(type, 300); // Pause before typing next
+        } else {
+          timeoutId = setTimeout(type, 50); // Delete speed
+        }
+      } else {
+        // Typing characters
+        charIndex++;
+        setAnimatedPlaceholder(prefix + currentPhrase.substring(0, charIndex));
+        
+        if (charIndex === currentPhrase.length) {
+          isDeleting = true;
+          timeoutId = setTimeout(type, 1500); // Pause at end of word
+        } else {
+          timeoutId = setTimeout(type, 100); // Type speed
+        }
+      }
+    };
+    
+    // Start the animation
+    timeoutId = setTimeout(type, 500);
+    
+    return () => clearTimeout(timeoutId);
+  }, []);
+  
+  // Determine which placeholder to show
+  const searchPlaceholder = (isSearchFocused || searchQuery) 
+    ? 'Search for items...' 
+    : animatedPlaceholder || 'Search for items...';
 
   const categories = [
     { name: 'Women', href: '/category/women', hasDropdown: true },
@@ -85,14 +136,6 @@ export default function Navbar() {
     }
   };
 
-  const handleMessagesClick = () => {
-    if (!user) {
-      openAuthModal('/messages', undefined, 'signin');
-    } else {
-      router.push('/messages');
-    }
-  };
-
   const handleProfileClick = () => {
     if (user) {
       setShowProfileMenu(!showProfileMenu);
@@ -144,9 +187,11 @@ export default function Navbar() {
             <div className="relative w-full">
               <input
                 type="text"
-                placeholder="Search for items..."
+                placeholder={searchPlaceholder}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
+                onFocus={() => setIsSearchFocused(true)}
+                onBlur={() => setIsSearchFocused(false)}
                 className="w-full px-4 py-2 pl-10 bg-gray-100 rounded-full focus:outline-none focus:ring-2 focus:ring-black focus:bg-white transition-all"
               />
               <svg 
@@ -162,46 +207,29 @@ export default function Navbar() {
 
           {/* Right Side Actions - Vintage Editorial Utility Row */}
           <div className="flex items-center gap-5">
-            {/* Sell Button - Subtle Pill Chip */}
+            {/* Sell Button - Prominent pill */}
             <button
               onClick={handleSellClick}
-              className="hidden md:flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium tracking-wide uppercase bg-transparent border border-[#D4C4B0] text-[#6B6560] rounded-full transition-all duration-200 hover:bg-[#FAF9F7] hover:border-[#8C8680] hover:text-[#4A4540] active:bg-[#F5F1E8] focus:outline-none focus:ring-2 focus:ring-[#D4C4B0] focus:ring-offset-1"
+              className="hidden md:flex items-center gap-1.5 px-4 py-2 text-sm font-medium tracking-wide uppercase bg-[#F5F1E8] border border-[#D4C4B0] text-[#4A4540] rounded-full transition-all duration-200 hover:bg-[#EDE6D9] hover:border-[#8C8680] hover:text-[#2D2926] active:bg-[#E5DDD0] focus:outline-none focus:ring-2 focus:ring-[#D4C4B0] focus:ring-offset-1 shadow-sm"
             >
-              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 00-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 00-16.536-1.84M7.5 14.25L5.106 5.272M6 20.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm12.75 0a.75.75 0 11-1.5 0 .75.75 0 011.5 0z" />
               </svg>
               <span>Sell</span>
             </button>
 
-            {/* Messages - Minimal Icon with Hover Tint */}
-            <button
-              onClick={handleMessagesClick}
-              className="relative p-2 -m-2 text-[#6B6560] transition-all duration-200 hover:bg-[#FAF9F7] hover:text-[#4A4540] rounded-full focus:outline-none focus:ring-2 focus:ring-[#D4C4B0] focus:ring-offset-1"
-              aria-label="Messages"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-              </svg>
-              {/* Notification Badge - Shows count of conversations with unread messages */}
-              {unreadCount > 0 && (
-                <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 flex items-center justify-center bg-[#8C8680] text-white text-[10px] font-semibold rounded-full border-2 border-white">
-                  {unreadCount > 9 ? '9+' : unreadCount}
-                </span>
-              )}
-            </button>
-
-            {/* Profile - Circular Avatar-Outline Icon */}
+            {/* Profile - Prominent circular avatar/icon */}
             <div className="relative" ref={profileRef}>
               <button
                 onClick={handleProfileClick}
-                className="p-2 -m-2 text-[#6B6560] transition-all duration-200 hover:bg-[#FAF9F7] hover:text-[#4A4540] rounded-full focus:outline-none focus:ring-2 focus:ring-[#D4C4B0] focus:ring-offset-1"
+                className="p-2 rounded-full border border-[#D4C4B0] bg-[#FAF9F7] text-[#4A4540] transition-all duration-200 hover:bg-[#F5F1E8] hover:border-[#8C8680] hover:text-[#2D2926] focus:outline-none focus:ring-2 focus:ring-[#D4C4B0] focus:ring-offset-1 shadow-sm"
                 aria-label={user ? 'Profile menu' : 'Sign in'}
               >
                 {user && user.avatar_url ? (
                   <img
                     src={user.avatar_url}
                     alt={user.full_name}
-                    className="w-6 h-6 rounded-full object-cover border border-[#D4C4B0]"
+                    className="w-7 h-7 rounded-full object-cover"
                   />
                 ) : (
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
@@ -375,9 +403,11 @@ export default function Navbar() {
             <form onSubmit={handleSearch}>
               <input
                 type="text"
-                placeholder="Search for items..."
+                placeholder={searchPlaceholder}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
+                onFocus={() => setIsSearchFocused(true)}
+                onBlur={() => setIsSearchFocused(false)}
                 className="w-full px-4 py-2 bg-gray-100 rounded-full focus:outline-none focus:ring-2 focus:ring-black"
               />
             </form>

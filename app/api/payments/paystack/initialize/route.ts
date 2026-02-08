@@ -2,14 +2,15 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getAuthenticatedUser } from '@/lib/auth';
 import { getServiceSupabase } from '@/lib/db';
 import { paystack, generateReference } from '@/lib/paystack';
-import { BOOST_PACKAGES, SubscriptionTierId, BoostPackageId } from '@/types';
+import { BOOST_PACKAGES, PLATFORM_COMMISSION_RATE, SubscriptionTierId, BoostPackageId } from '@/types';
 
 /**
  * POST /api/payments/paystack/initialize
- * Initialize a Paystack payment for subscriptions or boosts
+ * Initialize a Paystack payment for subscriptions, boosts, or purchases
  * 
  * For subscriptions: redirects to Paystack checkout
  * For boosts: initiates M-Pesa STK push directly
+ * For purchases: redirects to Paystack checkout with split payment (5%/95%)
  */
 export async function POST(request: NextRequest) {
   try {
@@ -21,7 +22,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { paymentType, phoneNumber } = body;
 
-    if (!paymentType || !['subscription', 'boost'].includes(paymentType)) {
+    if (!paymentType || !['subscription', 'boost', 'purchase'].includes(paymentType)) {
       return NextResponse.json({ error: 'Invalid payment type' }, { status: 400 });
     }
 
@@ -231,6 +232,155 @@ export async function POST(request: NextRequest) {
         type: 'pending',
         message: 'Payment initiated. Check your phone to complete with M-Pesa.',
         reference,
+      });
+    }
+
+    // =============================================
+    // PURCHASE PAYMENT (Split: 5% platform, 95% seller)
+    // =============================================
+    if (paymentType === 'purchase') {
+      const { productId } = body;
+
+      if (!productId) {
+        return NextResponse.json({ error: 'Product ID is required' }, { status: 400 });
+      }
+
+      // Fetch product with seller info
+      const { data: product, error: productError } = await supabase
+        .from('products')
+        .select('id, title, price, seller_id, status, images')
+        .eq('id', productId)
+        .single();
+
+      if (productError || !product) {
+        return NextResponse.json({ error: 'Product not found' }, { status: 404 });
+      }
+
+      // Validate product is available
+      if (product.status !== 'active') {
+        return NextResponse.json({ error: 'This product is no longer available' }, { status: 400 });
+      }
+
+      // Buyer cannot buy their own product
+      if (product.seller_id === user.id) {
+        return NextResponse.json({ error: 'You cannot buy your own product' }, { status: 400 });
+      }
+
+      // Validate price
+      if (!product.price || product.price <= 0) {
+        return NextResponse.json({ error: 'Invalid product price' }, { status: 400 });
+      }
+
+      // Fetch seller info (need their subaccount code)
+      const { data: seller, error: sellerError } = await supabase
+        .from('users')
+        .select('id, full_name, email, paystack_subaccount_code')
+        .eq('id', product.seller_id)
+        .single();
+
+      if (sellerError || !seller) {
+        return NextResponse.json({ error: 'Seller not found' }, { status: 404 });
+      }
+
+      // Seller must have a Paystack subaccount for split payments
+      if (!seller.paystack_subaccount_code) {
+        return NextResponse.json(
+          { error: 'This seller has not set up their payout account yet. Please contact them to set up payouts before purchasing.' },
+          { status: 400 }
+        );
+      }
+
+      // Calculate commission split
+      const amountKes = product.price;
+      const platformCommissionKes = Math.round(amountKes * PLATFORM_COMMISSION_RATE);
+      const sellerAmountKes = amountKes - platformCommissionKes;
+
+      const metadata = {
+        user_id: user.id,
+        payment_type: 'purchase',
+        product_id: productId,
+        product_title: product.title,
+        seller_id: product.seller_id,
+        amount_kes: amountKes,
+        platform_commission_kes: platformCommissionKes,
+        seller_amount_kes: sellerAmountKes,
+        subaccount_code: seller.paystack_subaccount_code,
+      };
+
+      // Create order record (pending)
+      const { data: order, error: orderError } = await supabase
+        .from('orders')
+        .insert({
+          product_id: productId,
+          buyer_id: user.id,
+          seller_id: product.seller_id,
+          amount_kes: amountKes,
+          platform_commission_kes: platformCommissionKes,
+          seller_amount_kes: sellerAmountKes,
+          paystack_reference: reference,
+          paystack_subaccount_code: seller.paystack_subaccount_code,
+          status: 'pending',
+        })
+        .select()
+        .single();
+
+      if (orderError) {
+        console.error('Error creating order:', orderError);
+        return NextResponse.json({ error: 'Failed to create order' }, { status: 500 });
+      }
+
+      // Also record in payment_transactions for unified tracking
+      const { error: txError } = await supabase.from('payment_transactions').insert({
+        user_id: user.id,
+        payment_type: 'purchase',
+        payment_provider: 'paystack',
+        amount_kes: amountKes,
+        currency: 'KES',
+        status: 'pending',
+        paystack_reference: reference,
+        metadata: { ...metadata, order_id: order.id },
+      });
+
+      if (txError) {
+        console.error('Error recording transaction:', txError);
+      }
+
+      // Initialize payment with split (subaccount gets 95%, platform gets 5%)
+      const callbackUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/product/${productId}?ref=${reference}&purchase=success`;
+
+      const response = await paystack.initializeTransaction({
+        email,
+        amount: amountKes,
+        reference,
+        callback_url: callbackUrl,
+        metadata,
+        channels: ['card', 'mobile_money'],
+        // Split payment config
+        subaccount: seller.paystack_subaccount_code,
+        bearer: 'subaccount', // Seller bears Paystack processing fees
+      });
+
+      if (!response.status || !response.data) {
+        console.error('Paystack initialization error:', response);
+
+        // Clean up failed order
+        await supabase.from('orders').update({ status: 'failed' }).eq('id', order.id);
+        await supabase
+          .from('payment_transactions')
+          .update({ status: 'failed', error_message: response.message })
+          .eq('paystack_reference', reference);
+
+        return NextResponse.json(
+          { error: response.message || 'Failed to initialize payment. Please try again.' },
+          { status: 400 }
+        );
+      }
+
+      return NextResponse.json({
+        type: 'redirect',
+        url: response.data.authorization_url,
+        reference: response.data.reference,
+        orderId: order.id,
       });
     }
 

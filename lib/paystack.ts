@@ -157,12 +157,118 @@ export function generateReference(prefix: string = 'outfittr'): string {
 }
 
 // =============================================
+// SUBACCOUNTS (for seller split payments)
+// =============================================
+
+export interface PaystackSubaccountResponse {
+  status: boolean;
+  message: string;
+  data?: {
+    business_name: string;
+    account_number: string;
+    percentage_charge: number;
+    settlement_bank: string;
+    currency: string;
+    bank: number;
+    integration: number;
+    domain: string;
+    account_name: string;
+    subaccount_code: string;
+    is_verified: boolean;
+    settlement_schedule: string;
+    active: boolean;
+    id: number;
+    createdAt: string;
+    updatedAt: string;
+  };
+}
+
+export interface PaystackBankListResponse {
+  status: boolean;
+  message: string;
+  data?: Array<{
+    name: string;
+    slug: string;
+    code: string;
+    country: string;
+    currency: string;
+    type: string;
+    active: boolean;
+  }>;
+}
+
+/**
+ * Create a Paystack subaccount for a seller
+ * The subaccount receives 95% of each transaction (percentage_charge = 5 means 5% to platform)
+ */
+export async function createSubaccount(params: {
+  business_name: string;
+  bank_code: string;
+  account_number: string;
+  percentage_charge?: number; // Platform's percentage (default 5%)
+  primary_contact_email?: string;
+  primary_contact_name?: string;
+  primary_contact_phone?: string;
+  metadata?: Record<string, unknown>;
+}): Promise<PaystackSubaccountResponse> {
+  return paystackRequest<PaystackSubaccountResponse>('/subaccount', 'POST', {
+    business_name: params.business_name,
+    bank_code: params.bank_code,
+    account_number: params.account_number,
+    percentage_charge: params.percentage_charge ?? 5, // 5% to platform by default
+    primary_contact_email: params.primary_contact_email,
+    primary_contact_name: params.primary_contact_name,
+    primary_contact_phone: params.primary_contact_phone
+      ? formatKenyanPhone(params.primary_contact_phone)
+      : undefined,
+    metadata: params.metadata ? JSON.stringify(params.metadata) : undefined,
+  });
+}
+
+/**
+ * Get a Paystack subaccount by code
+ */
+export async function getSubaccount(idOrCode: string): Promise<PaystackSubaccountResponse> {
+  return paystackRequest<PaystackSubaccountResponse>(`/subaccount/${encodeURIComponent(idOrCode)}`);
+}
+
+/**
+ * Update a Paystack subaccount
+ */
+export async function updateSubaccount(
+  idOrCode: string,
+  params: {
+    business_name?: string;
+    bank_code?: string;
+    account_number?: string;
+    percentage_charge?: number;
+    primary_contact_email?: string;
+    primary_contact_name?: string;
+    primary_contact_phone?: string;
+  }
+): Promise<PaystackSubaccountResponse> {
+  return paystackRequest<PaystackSubaccountResponse>(
+    `/subaccount/${encodeURIComponent(idOrCode)}`,
+    'PUT',
+    params
+  );
+}
+
+/**
+ * List Kenyan banks supported by Paystack
+ */
+export async function listBanks(country: string = 'kenya'): Promise<PaystackBankListResponse> {
+  return paystackRequest<PaystackBankListResponse>(`/bank?country=${encodeURIComponent(country)}`);
+}
+
+// =============================================
 // TRANSACTION INITIALIZATION
 // =============================================
 
 /**
  * Initialize a payment transaction
  * Works for both card and mobile money (M-Pesa)
+ * Supports split payments via subaccount parameter
  */
 export async function initializeTransaction(params: {
   email: string;
@@ -171,10 +277,14 @@ export async function initializeTransaction(params: {
   callback_url?: string;
   metadata?: Record<string, unknown>;
   channels?: ('card' | 'mobile_money' | 'bank')[];
+  // Split payment params
+  subaccount?: string; // Subaccount code for split payment
+  bearer?: 'account' | 'subaccount' | 'all' | 'all-proportional';
+  transaction_charge?: number; // Flat fee override in kobo (optional)
 }): Promise<PaystackInitializeResponse> {
   const reference = params.reference || generateReference();
-  
-  return paystackRequest<PaystackInitializeResponse>('/transaction/initialize', 'POST', {
+
+  const body: Record<string, unknown> = {
     email: params.email,
     amount: Math.round(params.amount * 100), // Convert to cents
     currency: 'KES',
@@ -182,7 +292,18 @@ export async function initializeTransaction(params: {
     callback_url: params.callback_url,
     metadata: params.metadata,
     channels: params.channels || ['card', 'mobile_money'],
-  });
+  };
+
+  // Add split payment config if subaccount is provided
+  if (params.subaccount) {
+    body.subaccount = params.subaccount;
+    body.bearer = params.bearer || 'subaccount'; // Seller bears Paystack fees by default
+    if (params.transaction_charge !== undefined) {
+      body.transaction_charge = params.transaction_charge;
+    }
+  }
+
+  return paystackRequest<PaystackInitializeResponse>('/transaction/initialize', 'POST', body);
 }
 
 /**
@@ -381,10 +502,17 @@ export function verifyWebhookSignature(
 // =============================================
 
 export const paystack = {
+  // Transactions
   initializeTransaction,
   chargeMobileMoney,
   submitOTP,
   verifyTransaction,
+  // Subaccounts (split payments)
+  createSubaccount,
+  getSubaccount,
+  updateSubaccount,
+  listBanks,
+  // Subscriptions
   createPlan,
   listPlans,
   initializeSubscription,
@@ -392,8 +520,10 @@ export const paystack = {
   cancelSubscription,
   enableSubscription,
   getSubscriptionManageLink,
+  // Customers
   createCustomer,
   getCustomer,
+  // Verification & utils
   verifyWebhookSignature,
   generateReference,
   formatKenyanPhone,

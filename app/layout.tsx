@@ -9,7 +9,10 @@ import { Analytics } from '@vercel/analytics/react'
 
 const inter = Inter({ subsets: ['latin'] })
 
+const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://yourdomain.com';
+
 export const metadata: Metadata = {
+  metadataBase: new URL(appUrl),
   title: 'Outfittr - Buy & Sell Unique Fashion',
   description: "Kenya's leading marketplace for secondhand fashion, vintage finds, and unique styles",
   keywords: ['thrift', 'secondhand', 'fashion', 'kenya', 'marketplace', 'vintage'],
@@ -41,8 +44,8 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
-  maximumScale: 1,
   themeColor: '#000000',
+  viewportFit: 'cover',
 }
 
 export default function RootLayout({

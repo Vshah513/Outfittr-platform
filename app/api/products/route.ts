@@ -22,6 +22,7 @@ const filterSchema = z.object({
   color: z.string().optional(),
   brand: z.string().optional(),
   cursor: z.string().optional(), // For cursor-based pagination
+  exclude_ids: z.string().optional(), // Comma-separated product IDs to exclude (swipe discovery)
 });
 
 export async function GET(request: NextRequest) {
@@ -98,6 +99,14 @@ export async function GET(request: NextRequest) {
     }
     if (filters.brand) {
       query = query.ilike('brand', `%${filters.brand}%`);
+    }
+
+    // Exclude already-seen product IDs (for swipe discovery)
+    if (filters.exclude_ids) {
+      const excludeIdArray = filters.exclude_ids.split(',').map(id => id.trim()).filter(Boolean);
+      if (excludeIdArray.length > 0) {
+        query = query.not('id', 'in', `(${excludeIdArray.join(',')})`);
+      }
     }
 
     // Apply sorting

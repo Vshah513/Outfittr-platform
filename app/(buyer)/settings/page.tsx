@@ -8,6 +8,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardHeader } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
+import SellerPayoutSetup from '@/components/checkout/SellerPayoutSetup';
 
 export default function SettingsPage() {
   const router = useRouter();
@@ -246,6 +247,13 @@ export default function SettingsPage() {
               </div>
             </CardContent>
           </Card>
+
+          {/* Seller Payout Setup - Only for sellers */}
+          {(user?.user_type === 'seller' || user?.user_type === 'both') && (
+            <div className="mt-6">
+              <SellerPayoutSetup />
+            </div>
+          )}
         </div>
       </main>
 

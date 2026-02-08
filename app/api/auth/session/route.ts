@@ -2,13 +2,21 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createSupabaseServerClient } from '@/lib/auth';
 import { getServiceSupabase } from '@/lib/db';
 
+const hasSupabaseConfig = () =>
+  Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
+
 // GET /api/auth/session - Returns current user
 export async function GET(request: NextRequest) {
   try {
+    if (!hasSupabaseConfig()) {
+      return NextResponse.json({ user: null });
+    }
     const supabase = await createSupabaseServerClient(request);
-    const { data: { session }, error } = await supabase.auth.getSession();
+    
+    // Use getUser() instead of getSession() for secure server-side auth verification
+    const { data: { user: authUser }, error } = await supabase.auth.getUser();
 
-    if (error || !session) {
+    if (error || !authUser) {
       return NextResponse.json({ user: null });
     }
 
@@ -21,7 +29,7 @@ export async function GET(request: NextRequest) {
     const { data: user } = await serviceSupabase
       .from('users')
       .select('*')
-      .eq('supabase_user_id', session.user.id)
+      .eq('supabase_user_id', authUser.id)
       .single();
 
     if (!user) {

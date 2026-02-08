@@ -32,11 +32,9 @@ export default function BundleTray() {
       });
 
       if (response.ok) {
-        const data = await response.json();
-        // Clear bundle and redirect to messages
         clearBundle();
         setIsExpanded(false);
-        router.push(`/messages?conversation=${data.data.conversation_id}`);
+        router.push('/marketplace');
       } else if (response.status === 401) {
         router.push('/login');
       } else {
