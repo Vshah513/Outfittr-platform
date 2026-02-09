@@ -47,18 +47,39 @@ export async function GET(request: NextRequest) {
         hasMore: false,
       });
     }
+
+    // Build exclude list: client seen IDs + saved items for authenticated user (so saved items don't reappear until removed from cart)
+    // Listings are public: never require auth for GET. If auth fails or is missing, we still return products.
+    let excludeIdSet = new Set<string>();
+    if (filters.exclude_ids) {
+      filters.exclude_ids.split(',').map(id => id.trim()).filter(Boolean).forEach(id => excludeIdSet.add(id));
+    }
+    let user: { id: string } | null = null;
+    try {
+      const auth = await getAuthenticatedUser(request);
+      user = auth.user;
+    } catch {
+      // Unauthenticated or auth error: continue without excluding saved items
+    }
+    if (user) {
+      const { data: savedRows } = await supabase
+        .from('saved_items')
+        .select('product_id')
+        .eq('user_id', user.id);
+      if (savedRows?.length) {
+        savedRows.forEach((row: { product_id: string }) => excludeIdSet.add(row.product_id));
+      }
+    }
+    const excludeIdArray = [...excludeIdSet];
     
-    // Build query with boost information
+    // Simple query: all active products with seller. No boost join so we always return listings.
     let query = supabase
       .from('products')
       .select(`
         *,
-        seller:users(id, full_name, avatar_url, location),
-        active_boost:product_boosts(id, boost_type, ends_at)
+        seller:users(id, full_name, avatar_url, location)
       `, { count: 'exact' })
-      .eq('status', 'active')
-      .eq('product_boosts.is_active', true)
-      .gt('product_boosts.ends_at', new Date().toISOString());
+      .eq('status', 'active');
 
     // Apply seller IDs filter for "following" tab
     if (filters.sellerIds) {
@@ -101,12 +122,9 @@ export async function GET(request: NextRequest) {
       query = query.ilike('brand', `%${filters.brand}%`);
     }
 
-    // Exclude already-seen product IDs (for swipe discovery)
-    if (filters.exclude_ids) {
-      const excludeIdArray = filters.exclude_ids.split(',').map(id => id.trim()).filter(Boolean);
-      if (excludeIdArray.length > 0) {
-        query = query.not('id', 'in', `(${excludeIdArray.join(',')})`);
-      }
+    // Exclude already-seen + saved product IDs (for swipe discovery)
+    if (excludeIdArray.length > 0) {
+      query = query.not('id', 'in', `(${excludeIdArray.join(',')})`);
     }
 
     // Apply sorting
@@ -133,35 +151,11 @@ export async function GET(request: NextRequest) {
       throw queryError;
     }
 
-    // Sort boosted products to the top (client-side since Supabase doesn't support ordering by joined table)
-    const sortedData = (data || []).sort((a: Record<string, unknown>, b: Record<string, unknown>) => {
-      const aBoost = a.active_boost as Array<{ boost_type: string }> | null;
-      const bBoost = b.active_boost as Array<{ boost_type: string }> | null;
-      const aHasBoost = aBoost && aBoost.length > 0;
-      const bHasBoost = bBoost && bBoost.length > 0;
-      
-      // Featured (homepage_carousel) first, then top_category, then non-boosted
-      if (aHasBoost && !bHasBoost) return -1;
-      if (!aHasBoost && bHasBoost) return 1;
-      if (aHasBoost && bHasBoost) {
-        const aFeatured = aBoost?.some(boost => boost.boost_type === 'homepage_carousel');
-        const bFeatured = bBoost?.some(boost => boost.boost_type === 'homepage_carousel');
-        if (aFeatured && !bFeatured) return -1;
-        if (!aFeatured && bFeatured) return 1;
-      }
-      return 0;
-    });
-
-    // Transform data to include isBoosted flag
-    const transformedData = sortedData.map((product: Record<string, unknown>) => {
-      const boosts = product.active_boost as Array<{ boost_type: string }> | null;
-      return {
-        ...product,
-        is_boosted: boosts && boosts.length > 0,
-        boost_type: boosts?.[0]?.boost_type || null,
-        active_boost: undefined, // Remove the raw boost data
-      };
-    });
+    const transformedData = (data || []).map((product: Record<string, unknown>) => ({
+      ...product,
+      is_boosted: false,
+      boost_type: null,
+    }));
 
     return NextResponse.json({
       data: transformedData,

@@ -42,31 +42,31 @@ export default function AffordableFindsPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-white">
+    <div className="min-h-screen flex flex-col bg-[var(--bg)]">
       <Navbar />
       
       <main className="flex-1">
         <div className="max-w-7xl mx-auto px-4 py-8">
           {/* Page Title - styled like Women, Men, Vintage sections */}
           <div className="mb-6">
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight mb-2">
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight mb-2 text-[var(--text)]">
               Affordable Finds
             </h1>
-            <p className="text-gray-600 text-sm md:text-base">
+            <p className="text-[var(--text-2)] text-sm md:text-base">
               A rotating selection of well-priced thrift pieces
             </p>
           </div>
 
           {/* Sort Control */}
           <div className="flex items-center justify-between mb-6">
-            <div className="text-sm text-gray-600">
+            <div className="text-sm text-[var(--text-2)]">
               {isLoading ? 'Loading...' : `${products.length} items`}
             </div>
             
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
-              className="px-4 py-2 border border-gray-300 rounded-lg bg-white text-sm focus:outline-none focus:ring-2 focus:ring-black transition-all"
+              className="px-4 py-2 border border-[var(--border)] rounded-lg bg-[var(--input-fill)] text-[var(--text)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--brand)] transition-all"
             >
               <option value="newest">Newest first</option>
               <option value="price_asc">Price: low to high</option>
@@ -76,16 +76,16 @@ export default function AffordableFindsPage() {
           {/* Products Grid or Empty State */}
           {isLoading ? (
             <div className="flex justify-center items-center py-20">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-black"></div>
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--text)]"></div>
             </div>
           ) : products.length > 0 ? (
             <ProductGrid products={products} isLoading={false} />
           ) : (
             <div className="text-center py-20 max-w-md mx-auto">
-              <h2 className="text-xl font-medium text-gray-900 mb-3">
+              <h2 className="text-xl font-medium text-[var(--text)] mb-3">
                 No items here right now
               </h2>
-              <p className="text-gray-600 text-sm mb-6 leading-relaxed">
+              <p className="text-[var(--text-2)] text-sm mb-6 leading-relaxed">
                 This edit updates as sellers add new listings. Check back soon or browse the full collection.
               </p>
               <div className="space-y-3">
@@ -97,7 +97,7 @@ export default function AffordableFindsPage() {
                 <div>
                   <Link 
                     href="/marketplace" 
-                    className="text-sm text-gray-700 hover:text-black hover:underline transition-colors"
+                    className="text-sm text-[var(--text-2)] hover:text-[var(--text)] hover:underline transition-colors"
                   >
                     Find your style
                   </Link>

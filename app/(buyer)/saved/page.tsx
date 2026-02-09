@@ -20,8 +20,13 @@ export default function SavedItemsPage() {
     try {
       const response = await fetch('/api/saved-items');
       if (response.ok) {
-        const data = await response.json();
-        setSavedItems(data.items || []);
+        const json = await response.json();
+        const rows = json.data || [];
+        // API returns [{ product_id, user_id, created_at, product: Product }, ...]
+        const products = rows
+          .map((row: { product?: Product }) => row.product)
+          .filter((p: Product | undefined): p is Product => p != null && p.status === 'active');
+        setSavedItems(products);
       }
     } catch (error) {
       console.error('Error fetching saved items:', error);
@@ -32,10 +37,8 @@ export default function SavedItemsPage() {
 
   const handleRemoveSaved = async (productId: string) => {
     try {
-      const response = await fetch('/api/saved-items', {
+      const response = await fetch(`/api/saved-items?product_id=${encodeURIComponent(productId)}`, {
         method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ product_id: productId }),
       });
 
       if (response.ok) {
@@ -56,7 +59,7 @@ export default function SavedItemsPage() {
           <div className="mb-8">
             <h1 className="text-3xl font-bold text-gray-900">Saved Items</h1>
             <p className="text-gray-600 mt-2">
-              Items you've saved for later ({savedItems.length})
+              Items you&apos;ve saved from the app or marketplace. Only active listings are shown ({savedItems.length}).
             </p>
           </div>
 

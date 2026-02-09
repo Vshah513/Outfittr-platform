@@ -52,7 +52,7 @@ export default function CatalogProductCard({ product }: CatalogProductCardProps)
     <div className="group relative">
       <Link href={`/product/${product.id}`}>
         {/* Image Container */}
-        <div className="relative aspect-[3/4] overflow-hidden rounded-lg bg-gray-100 mb-3">
+        <div className="relative aspect-[3/4] overflow-hidden rounded-lg bg-[var(--surface-2)] mb-3">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={displayImage}
@@ -69,7 +69,7 @@ export default function CatalogProductCard({ product }: CatalogProductCardProps)
           
           {/* Like Button */}
           <button 
-            className="absolute top-2 right-2 w-8 h-8 bg-white/90 hover:bg-white rounded-full flex items-center justify-center shadow-sm transition-all z-10"
+            className="absolute top-2 right-2 w-8 h-8 rounded-full flex items-center justify-center shadow-sm transition-all z-10 bg-[var(--surface)]/90 hover:bg-[var(--surface)]"
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
@@ -77,14 +77,14 @@ export default function CatalogProductCard({ product }: CatalogProductCardProps)
             }}
             aria-label="Save item"
           >
-            <svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-5 h-5 text-[var(--text-2)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
             </svg>
           </button>
 
           {/* Condition Badge */}
           {product.condition === 'brand_new' && (
-            <div className="absolute bottom-2 left-2 bg-white px-2 py-1 rounded-md text-xs font-medium">
+            <div className="absolute bottom-2 left-2 bg-[var(--surface)] px-2 py-1 rounded-md text-xs font-medium text-[var(--text)]">
               New
             </div>
           )}
@@ -93,16 +93,16 @@ export default function CatalogProductCard({ product }: CatalogProductCardProps)
         {/* Card Content */}
         <div className="space-y-1">
           {/* Price */}
-          <p className="font-bold text-gray-900">{formatPrice(product.price)}</p>
+          <p className="font-bold text-[var(--text)]">{formatPrice(product.price)}</p>
           
           {/* Title */}
-          <h3 className="text-sm text-gray-900 line-clamp-2 group-hover:underline">
+          <h3 className="text-sm text-[var(--text)] line-clamp-2 group-hover:underline">
             {product.title}
           </h3>
           
           {/* Size */}
           {product.size && (
-            <p className="text-xs text-gray-500">Size {product.size}</p>
+            <p className="text-xs text-[var(--text-3)]">Size {product.size}</p>
           )}
 
           {/* Seller */}
@@ -112,7 +112,7 @@ export default function CatalogProductCard({ product }: CatalogProductCardProps)
               e.stopPropagation();
               window.location.href = `/seller/${sellerId}`;
             }}
-            className="text-xs text-gray-500 hover:text-gray-900 hover:underline truncate block cursor-pointer"
+            className="text-xs text-[var(--text-3)] hover:text-[var(--text)] hover:underline truncate block cursor-pointer"
           >
             {sellerName}
           </span>

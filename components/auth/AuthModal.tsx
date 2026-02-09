@@ -237,20 +237,20 @@ export default function AuthModal() {
     <>
       {/* Backdrop */}
       <div 
-        className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 transition-opacity"
+        className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100] transition-opacity"
         onClick={closeAuthModal}
       />
       
       {/* Modal/Sheet - Responsive */}
-      <div className="fixed inset-0 md:inset-auto md:right-0 md:top-0 md:bottom-0 md:w-[440px] z-50 flex items-end md:items-stretch">
+      <div className="fixed inset-0 md:inset-auto md:right-0 md:top-0 md:bottom-0 md:w-[440px] z-[100] flex items-end md:items-stretch">
         <div 
-          className="w-full bg-[#FDFCF9] rounded-t-xl md:rounded-none shadow-2xl overflow-y-auto max-h-[90vh] md:max-h-full"
+          className="w-full rounded-t-xl md:rounded-none shadow-2xl overflow-y-auto max-h-[90vh] md:max-h-full bg-[var(--surface)]"
           onClick={(e) => e.stopPropagation()}
         >
           {/* Close button */}
           <button
             onClick={closeAuthModal}
-            className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-200 transition-colors z-10"
+            className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full hover:bg-[var(--surface-2)] transition-colors z-10 text-[var(--text)]"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -260,14 +260,14 @@ export default function AuthModal() {
           <div className="p-8 md:p-10">
             {/* Logo */}
             <div className="flex items-center gap-2 mb-6">
-              <div className="bg-black text-white w-10 h-10 rounded-full flex items-center justify-center font-bold text-xl">
+              <div className="bg-[var(--text)] text-[var(--bg)] w-10 h-10 rounded-full flex items-center justify-center font-bold text-xl">
                 T
               </div>
-              <span className="font-bold text-xl">Outfittr</span>
+              <span className="font-bold text-xl text-[var(--text)]">Outfittr</span>
             </div>
 
             {/* Welcome Message */}
-            <h1 className="font-serif text-3xl font-normal tracking-tight mb-2">
+            <h1 className="font-serif text-3xl font-normal tracking-tight mb-2 text-[var(--text)]">
               {step === 'forgot-password' ? 'Reset Password' : 
                step === 'reset-sent' ? 'Check Your Email' :
                step === 'new-password' ? 'Set New Password' :
@@ -276,7 +276,7 @@ export default function AuthModal() {
             </h1>
             
             {step === 'initial' && (
-              <p className="text-gray-600 text-sm mb-6">
+              <p className="text-[var(--text-2)] text-sm mb-6">
                 {activeTab === 'signin' 
                   ? 'Sign in to continue' 
                   : 'Create your account to get started'}
@@ -285,13 +285,13 @@ export default function AuthModal() {
 
             {/* Tab Navigation */}
             {step === 'initial' && (
-              <div className="flex gap-1 mb-6 bg-gray-100 rounded-lg p-1">
+              <div className="flex gap-1 mb-6 bg-[var(--surface-2)] rounded-lg p-1">
                 <button
                   onClick={() => { setActiveTab('signin'); setError(''); }}
                   className={`flex-1 py-2.5 px-4 rounded-md text-sm font-medium transition-all ${
                     activeTab === 'signin'
-                      ? 'bg-white shadow-sm text-black'
-                      : 'text-gray-600 hover:text-black'
+                      ? 'bg-[var(--surface-2)] shadow-sm text-[var(--text)]'
+                      : 'text-[var(--text-2)] hover:text-[var(--text)]'
                   }`}
                 >
                   Sign In
@@ -300,8 +300,8 @@ export default function AuthModal() {
                   onClick={() => { setActiveTab('signup'); setError(''); }}
                   className={`flex-1 py-2.5 px-4 rounded-md text-sm font-medium transition-all ${
                     activeTab === 'signup'
-                      ? 'bg-white shadow-sm text-black'
-                      : 'text-gray-600 hover:text-black'
+                      ? 'bg-[var(--surface-2)] shadow-sm text-[var(--text)]'
+                      : 'text-[var(--text-2)] hover:text-[var(--text)]'
                   }`}
                 >
                   Create Account
@@ -327,7 +327,7 @@ export default function AuthModal() {
             {step === 'initial' && activeTab === 'signin' && (
               <form onSubmit={handleSignIn} className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Email</label>
+                  <label className="block text-sm font-medium text-[var(--text-2)] mb-1.5">Email</label>
                   <input
                     type="email"
                     value={email}
@@ -335,12 +335,12 @@ export default function AuthModal() {
                     placeholder="you@example.com"
                     required
                     autoComplete="email"
-                    className="w-full h-12 px-4 bg-white border border-[#E8E4DD] rounded-lg focus:outline-none focus:ring-2 focus:ring-black/20"
+                    className="w-full h-12 px-4 bg-[var(--input-fill)] border border-[var(--border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--brand)]"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Password</label>
+                  <label className="block text-sm font-medium text-[var(--text-2)] mb-1.5">Password</label>
                   <div className="relative">
                     <input
                       type={showPassword ? 'text' : 'password'}
@@ -349,12 +349,12 @@ export default function AuthModal() {
                       placeholder="••••••••"
                       required
                       autoComplete="current-password"
-                      className="w-full h-12 px-4 pr-12 bg-white border border-[#E8E4DD] rounded-lg focus:outline-none focus:ring-2 focus:ring-black/20"
+                      className="w-full h-12 px-4 pr-12 bg-[var(--input-fill)] border border-[var(--border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--brand)]"
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--text-3)] hover:text-[var(--text-2)]"
                     >
                       {showPassword ? (
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -373,7 +373,7 @@ export default function AuthModal() {
                 <button
                   type="button"
                   onClick={() => setStep('forgot-password')}
-                  className="text-sm text-gray-600 hover:text-black transition-colors"
+                  className="text-sm text-[var(--text-2)] hover:text-[var(--text)] transition-colors"
                 >
                   Forgot password?
                 </button>
@@ -381,7 +381,7 @@ export default function AuthModal() {
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="w-full h-12 bg-black text-white rounded-lg font-medium hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full h-12 bg-[var(--text)] text-[var(--bg)] rounded-lg font-medium hover:opacity-90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isLoading ? 'Signing in...' : 'Sign In'}
                 </button>
@@ -389,10 +389,10 @@ export default function AuthModal() {
                 {/* Divider */}
                 <div className="relative my-6">
                   <div className="absolute inset-0 flex items-center">
-                    <div className="w-full border-t border-gray-200"></div>
+                    <div className="w-full border-t border-[var(--divider)]"></div>
                   </div>
                   <div className="relative flex justify-center text-sm">
-                    <span className="px-2 bg-[#FDFCF9] text-gray-500">or continue with</span>
+                    <span className="px-2 bg-[var(--surface)] text-[var(--text-3)]">or continue with</span>
                   </div>
                 </div>
 
@@ -402,7 +402,7 @@ export default function AuthModal() {
                     type="button"
                     onClick={handleGoogleSignIn}
                     disabled={isLoading}
-                    className="flex-1 h-12 flex items-center justify-center gap-2 bg-white border border-[#E8E4DD] rounded-lg hover:shadow-md transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="flex-1 h-12 flex items-center justify-center gap-2 bg-[var(--input-fill)] border border-[var(--border)] rounded-lg hover:shadow-md transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <svg className="w-5 h-5" viewBox="0 0 24 24">
                       <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -431,7 +431,7 @@ export default function AuthModal() {
             {step === 'initial' && activeTab === 'signup' && (
               <form onSubmit={handleSignUp} className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Email</label>
+                  <label className="block text-sm font-medium text-[var(--text-2)] mb-1.5">Email</label>
                   <input
                     type="email"
                     value={email}
@@ -439,12 +439,12 @@ export default function AuthModal() {
                     placeholder="you@example.com"
                     required
                     autoComplete="email"
-                    className="w-full h-12 px-4 bg-white border border-[#E8E4DD] rounded-lg focus:outline-none focus:ring-2 focus:ring-black/20"
+                    className="w-full h-12 px-4 bg-[var(--input-fill)] border border-[var(--border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--brand)]"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Username</label>
+                  <label className="block text-sm font-medium text-[var(--text-2)] mb-1.5">Username</label>
                   <input
                     type="text"
                     value={username}
@@ -452,13 +452,13 @@ export default function AuthModal() {
                     placeholder="your_username"
                     required
                     autoComplete="username"
-                    className="w-full h-12 px-4 bg-white border border-[#E8E4DD] rounded-lg focus:outline-none focus:ring-2 focus:ring-black/20"
+                    className="w-full h-12 px-4 bg-[var(--input-fill)] border border-[var(--border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--brand)]"
                   />
-                  <p className="text-xs text-gray-500 mt-1">Letters, numbers, and underscores only</p>
+                  <p className="text-xs text-[var(--text-3)] mt-1">Letters, numbers, and underscores only</p>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Password</label>
+                  <label className="block text-sm font-medium text-[var(--text-2)] mb-1.5">Password</label>
                   <div className="relative">
                     <input
                       type={showPassword ? 'text' : 'password'}
@@ -467,12 +467,12 @@ export default function AuthModal() {
                       placeholder="At least 6 characters"
                       required
                       autoComplete="new-password"
-                      className="w-full h-12 px-4 pr-12 bg-white border border-[#E8E4DD] rounded-lg focus:outline-none focus:ring-2 focus:ring-black/20"
+                      className="w-full h-12 px-4 pr-12 bg-[var(--input-fill)] border border-[var(--border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--brand)]"
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--text-3)] hover:text-[var(--text-2)]"
                     >
                       {showPassword ? (
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -491,7 +491,7 @@ export default function AuthModal() {
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="w-full h-12 bg-black text-white rounded-lg font-medium hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full h-12 bg-[var(--text)] text-[var(--bg)] rounded-lg font-medium hover:opacity-90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isLoading ? 'Creating Account...' : 'Create Account'}
                 </button>
@@ -499,10 +499,10 @@ export default function AuthModal() {
                 {/* Divider */}
                 <div className="relative my-6">
                   <div className="absolute inset-0 flex items-center">
-                    <div className="w-full border-t border-gray-200"></div>
+                    <div className="w-full border-t border-[var(--divider)]"></div>
                   </div>
                   <div className="relative flex justify-center text-sm">
-                    <span className="px-2 bg-[#FDFCF9] text-gray-500">or continue with</span>
+                    <span className="px-2 bg-[var(--surface)] text-[var(--text-3)]">or continue with</span>
                   </div>
                 </div>
 
@@ -512,7 +512,7 @@ export default function AuthModal() {
                     type="button"
                     onClick={handleGoogleSignIn}
                     disabled={isLoading}
-                    className="flex-1 h-12 flex items-center justify-center gap-2 bg-white border border-[#E8E4DD] rounded-lg hover:shadow-md transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="flex-1 h-12 flex items-center justify-center gap-2 bg-[var(--input-fill)] border border-[var(--border)] rounded-lg hover:shadow-md transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <svg className="w-5 h-5" viewBox="0 0 24 24">
                       <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -540,12 +540,12 @@ export default function AuthModal() {
             {/* Forgot Password Form */}
             {step === 'forgot-password' && (
               <form onSubmit={handleForgotPassword} className="space-y-4">
-                <p className="text-gray-600 text-sm mb-4">
+                <p className="text-[var(--text-2)] text-sm mb-4">
                   Enter your email address and we&apos;ll send you a link to reset your password.
                 </p>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Email</label>
+                  <label className="block text-sm font-medium text-[var(--text-2)] mb-1.5">Email</label>
                   <input
                     type="email"
                     value={email}
@@ -554,14 +554,14 @@ export default function AuthModal() {
                     required
                     autoFocus
                     autoComplete="email"
-                    className="w-full h-12 px-4 bg-white border border-[#E8E4DD] rounded-lg focus:outline-none focus:ring-2 focus:ring-black/20"
+                    className="w-full h-12 px-4 bg-[var(--input-fill)] border border-[var(--border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--brand)]"
                   />
                 </div>
 
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="w-full h-12 bg-black text-white rounded-lg font-medium hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full h-12 bg-[var(--text)] text-[var(--bg)] rounded-lg font-medium hover:opacity-90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isLoading ? 'Sending...' : 'Send Reset Link'}
                 </button>
@@ -569,7 +569,7 @@ export default function AuthModal() {
                 <button
                   type="button"
                   onClick={() => { setStep('initial'); setError(''); }}
-                  className="w-full text-sm text-gray-600 hover:text-black transition-colors py-2"
+                  className="w-full text-sm text-[var(--text-2)] hover:text-[var(--text)] transition-colors py-2"
                 >
                   ← Back to sign in
                 </button>
@@ -585,13 +585,13 @@ export default function AuthModal() {
                   </svg>
                 </div>
 
-                <p className="text-center text-gray-700">
+                <p className="text-center text-[var(--text-2)]">
                   We sent a password reset link to <strong>{email}</strong>
                 </p>
 
                 <button
                   onClick={() => { setStep('initial'); setSuccessMessage(''); }}
-                  className="w-full h-12 bg-black text-white rounded-lg font-medium hover:bg-gray-800 transition-colors"
+                  className="w-full h-12 bg-[var(--text)] text-[var(--bg)] rounded-lg font-medium hover:opacity-90 transition-colors"
                 >
                   Back to Sign In
                 </button>
@@ -601,12 +601,12 @@ export default function AuthModal() {
             {/* Set New Password Form */}
             {step === 'new-password' && (
               <form onSubmit={handleSetNewPassword} className="space-y-4">
-                <p className="text-gray-600 text-sm mb-4">
+                <p className="text-[var(--text-2)] text-sm mb-4">
                   Enter your new password below.
                 </p>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">New Password</label>
+                  <label className="block text-sm font-medium text-[var(--text-2)] mb-1.5">New Password</label>
                   <div className="relative">
                     <input
                       type={showPassword ? 'text' : 'password'}
@@ -616,12 +616,12 @@ export default function AuthModal() {
                       required
                       autoFocus
                       autoComplete="new-password"
-                      className="w-full h-12 px-4 pr-12 bg-white border border-[#E8E4DD] rounded-lg focus:outline-none focus:ring-2 focus:ring-black/20"
+                      className="w-full h-12 px-4 pr-12 bg-[var(--input-fill)] border border-[var(--border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--brand)]"
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--text-3)] hover:text-[var(--text-2)]"
                     >
                       {showPassword ? (
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -638,7 +638,7 @@ export default function AuthModal() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Confirm New Password</label>
+                  <label className="block text-sm font-medium text-[var(--text-2)] mb-1.5">Confirm New Password</label>
                   <input
                     type={showPassword ? 'text' : 'password'}
                     value={confirmNewPassword}
@@ -646,14 +646,14 @@ export default function AuthModal() {
                     placeholder="Re-enter your new password"
                     required
                     autoComplete="new-password"
-                    className="w-full h-12 px-4 bg-white border border-[#E8E4DD] rounded-lg focus:outline-none focus:ring-2 focus:ring-black/20"
+                    className="w-full h-12 px-4 bg-[var(--input-fill)] border border-[var(--border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--brand)]"
                   />
                 </div>
 
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="w-full h-12 bg-black text-white rounded-lg font-medium hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full h-12 bg-[var(--text)] text-[var(--bg)] rounded-lg font-medium hover:opacity-90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isLoading ? 'Updating Password...' : 'Update Password'}
                 </button>
@@ -661,7 +661,7 @@ export default function AuthModal() {
                 <button
                   type="button"
                   onClick={() => { setStep('initial'); setError(''); }}
-                  className="w-full text-sm text-gray-600 hover:text-black transition-colors py-2"
+                  className="w-full text-sm text-[var(--text-2)] hover:text-[var(--text)] transition-colors py-2"
                 >
                   ← Back to sign in
                 </button>
@@ -677,13 +677,13 @@ export default function AuthModal() {
                   </svg>
                 </div>
 
-                <p className="text-center text-gray-700">
+                <p className="text-center text-[var(--text-2)]">
                   {successMessage || 'Success! You can now sign in.'}
                 </p>
 
                 <button
                   onClick={switchToSignIn}
-                  className="w-full h-12 bg-black text-white rounded-lg font-medium hover:bg-gray-800 transition-colors"
+                  className="w-full h-12 bg-[var(--text)] text-[var(--bg)] rounded-lg font-medium hover:opacity-90 transition-colors"
                 >
                   Sign In Now
                 </button>
@@ -692,12 +692,12 @@ export default function AuthModal() {
 
             {/* Terms footer */}
             {step === 'initial' && (
-              <div className="mt-8 pt-6 border-t border-[#E8E4DD]">
-                <p className="text-xs text-gray-500 text-center leading-relaxed">
+              <div className="mt-8 pt-6 border-t border-[var(--border)]">
+                <p className="text-xs text-[var(--text-3)] text-center leading-relaxed">
                   By continuing, you agree to our{' '}
-                  <Link href="/terms" className="underline hover:text-gray-700">Terms</Link>
+                  <Link href="/terms" className="underline hover:text-[var(--text-2)]">Terms</Link>
                   {' '}&{' '}
-                  <Link href="/privacy" className="underline hover:text-gray-700">Privacy</Link>
+                  <Link href="/privacy" className="underline hover:text-[var(--text-2)]">Privacy</Link>
                 </p>
               </div>
             )}

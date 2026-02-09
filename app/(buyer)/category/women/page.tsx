@@ -99,17 +99,17 @@ function WomenCategoryContent() {
   const hasActiveFilters = selectedSubcategory !== 'All' || condition || priceMin || priceMax || size;
 
   return (
-    <div className="min-h-screen flex flex-col bg-white">
+    <div className="min-h-screen flex flex-col bg-[var(--bg)]">
       <Navbar />
       
       <main className="flex-1">
         <div className="max-w-7xl mx-auto px-4 py-8">
           {/* Page Header */}
           <div className="mb-8">
-            <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-gray-900 mb-2">
+            <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-[var(--text)] mb-2">
               Women
             </h1>
-            <p className="text-gray-600">
+            <p className="text-[var(--text-2)]">
               Curated secondhand pieces for women
             </p>
           </div>
@@ -122,8 +122,8 @@ function WomenCategoryContent() {
                 onClick={() => setSelectedSubcategory(sub)}
                 className={`flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-colors ${
                   selectedSubcategory === sub
-                    ? 'bg-black text-white'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    ? 'bg-[var(--text)] text-[var(--bg)]'
+                    : 'bg-[var(--surface-2)] text-[var(--text-2)] hover:bg-[var(--surface)]'
                 }`}
               >
                 {sub}
@@ -132,12 +132,12 @@ function WomenCategoryContent() {
           </div>
 
           {/* Controls Bar */}
-          <div className="flex items-center justify-between mb-6 pb-4 border-b border-gray-200">
+          <div className="flex items-center justify-between mb-6 pb-4 border-b border-[var(--divider)]">
             <div className="flex items-center gap-4">
               {/* Mobile Filter Button */}
               <button
                 onClick={() => setShowMobileFilters(true)}
-                className="md:hidden flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                className="md:hidden flex items-center gap-2 px-4 py-2 border border-[var(--border)] rounded-lg hover:bg-[var(--surface-2)] transition-colors text-[var(--text)]"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
@@ -146,7 +146,7 @@ function WomenCategoryContent() {
               </button>
 
               {/* Item Count */}
-              <span className="text-sm text-gray-600">
+              <span className="text-sm text-[var(--text-2)]">
                 {isLoading ? 'Loading...' : `${products.length} items`}
               </span>
 
@@ -154,7 +154,7 @@ function WomenCategoryContent() {
               {hasActiveFilters && (
                 <button
                   onClick={clearFilters}
-                  className="text-sm font-medium text-gray-600 hover:text-black transition-colors"
+                  className="text-sm font-medium text-[var(--text-2)] hover:text-[var(--text)] transition-colors"
                 >
                   Clear filters
                 </button>
@@ -165,7 +165,7 @@ function WomenCategoryContent() {
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
-              className="px-4 py-2 border border-gray-300 rounded-lg bg-white text-sm font-medium focus:outline-none focus:ring-2 focus:ring-black transition-all"
+              className="px-4 py-2 border border-[var(--border)] rounded-lg bg-[var(--input-fill)] text-[var(--text)] text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[var(--brand)] transition-all"
             >
               {SORT_OPTIONS.map((option) => (
                 <option key={option.value} value={option.value}>
@@ -182,31 +182,31 @@ function WomenCategoryContent() {
               <div className="sticky top-20 space-y-6">
                 {/* Price Range */}
                 <div>
-                  <h3 className="font-semibold text-sm mb-3">Price Range</h3>
+                  <h3 className="font-semibold text-sm mb-3 text-[var(--text)]">Price Range</h3>
                   <div className="flex items-center gap-2">
                     <input
                       type="number"
                       placeholder="Min"
                       value={priceMin}
                       onChange={(e) => setPriceMin(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-black"
+                      className="w-full px-3 py-2 border border-[var(--border)] rounded-lg bg-[var(--input-fill)] text-[var(--text)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--brand)]"
                     />
-                    <span className="text-gray-400">-</span>
+                    <span className="text-[var(--text-3)]">-</span>
                     <input
                       type="number"
                       placeholder="Max"
                       value={priceMax}
                       onChange={(e) => setPriceMax(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-black"
+                      className="w-full px-3 py-2 border border-[var(--border)] rounded-lg bg-[var(--input-fill)] text-[var(--text)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--brand)]"
                     />
                   </div>
                 </div>
 
-                <hr className="border-gray-200" />
+                <hr className="border-[var(--divider)]" />
 
                 {/* Size */}
                 <div>
-                  <h3 className="font-semibold text-sm mb-3">Size</h3>
+                  <h3 className="font-semibold text-sm mb-3 text-[var(--text)]">Size</h3>
                   <div className="flex flex-wrap gap-2">
                     {womenSizes.map((s) => (
                       <button
@@ -214,8 +214,8 @@ function WomenCategoryContent() {
                         onClick={() => setSize(size === s ? undefined : s)}
                         className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
                           size === s
-                            ? 'bg-black text-white'
-                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                            ? 'bg-[var(--text)] text-[var(--bg)]'
+                            : 'bg-[var(--surface-2)] text-[var(--text-2)] hover:bg-[var(--surface)]'
                         }`}
                       >
                         {s}
@@ -224,11 +224,11 @@ function WomenCategoryContent() {
                   </div>
                 </div>
 
-                <hr className="border-gray-200" />
+                <hr className="border-[var(--divider)]" />
 
                 {/* Condition */}
                 <div>
-                  <h3 className="font-semibold text-sm mb-3">Condition</h3>
+                  <h3 className="font-semibold text-sm mb-3 text-[var(--text)]">Condition</h3>
                   <div className="space-y-2">
                     {CONDITIONS.map(({ value, label }) => (
                       <label key={value} className="flex items-center gap-2 cursor-pointer">
@@ -237,9 +237,9 @@ function WomenCategoryContent() {
                           name="condition"
                           checked={condition === value}
                           onChange={() => setCondition(value)}
-                          className="w-4 h-4 border-gray-300 text-black focus:ring-black"
+                          className="w-4 h-4 border-[var(--border)] text-[var(--text)] focus:ring-[var(--brand)]"
                         />
-                        <span className="text-sm text-gray-700">{label}</span>
+                        <span className="text-sm text-[var(--text-2)]">{label}</span>
                       </label>
                     ))}
                   </div>
@@ -253,11 +253,11 @@ function WomenCategoryContent() {
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
                   {Array.from({ length: 12 }).map((_, i) => (
                     <div key={i} className="animate-pulse">
-                      <div className="aspect-[3/4] bg-gray-200 rounded-lg mb-3" />
+                      <div className="aspect-[3/4] bg-[var(--surface-2)] rounded-lg mb-3" />
                       <div className="space-y-2">
-                        <div className="h-4 bg-gray-200 rounded w-1/3" />
-                        <div className="h-4 bg-gray-200 rounded w-2/3" />
-                        <div className="h-3 bg-gray-200 rounded w-1/4" />
+                        <div className="h-4 bg-[var(--surface-2)] rounded w-1/3" />
+                        <div className="h-4 bg-[var(--surface-2)] rounded w-2/3" />
+                        <div className="h-3 bg-[var(--surface-2)] rounded w-1/4" />
                       </div>
                     </div>
                   ))}
@@ -265,7 +265,7 @@ function WomenCategoryContent() {
               ) : products.length === 0 ? (
                 <div className="text-center py-16">
                   <svg 
-                    className="mx-auto h-12 w-12 text-gray-400" 
+                    className="mx-auto h-12 w-12 text-[var(--text-3)]" 
                     fill="none" 
                     stroke="currentColor" 
                     viewBox="0 0 24 24"
@@ -277,14 +277,14 @@ function WomenCategoryContent() {
                       d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" 
                     />
                   </svg>
-                  <h3 className="mt-4 text-lg font-medium text-gray-900">No items found</h3>
-                  <p className="mt-2 text-sm text-gray-500">
+                  <h3 className="mt-4 text-lg font-medium text-[var(--text)]">No items found</h3>
+                  <p className="mt-2 text-sm text-[var(--text-2)]">
                     Try adjusting your filters or check back later for new listings.
                   </p>
                   {hasActiveFilters && (
                     <button
                       onClick={clearFilters}
-                      className="mt-4 px-6 py-2 bg-black text-white rounded-full text-sm font-medium hover:bg-gray-800 transition-colors"
+                      className="mt-4 px-6 py-2 bg-[var(--text)] text-[var(--bg)] rounded-full text-sm font-medium hover:opacity-90 transition-colors"
                     >
                       Clear all filters
                     </button>
@@ -306,14 +306,14 @@ function WomenCategoryContent() {
       {showMobileFilters && (
         <div className="fixed inset-0 bg-black/50 z-50" onClick={() => setShowMobileFilters(false)}>
           <div 
-            className="absolute bottom-0 left-0 right-0 bg-white rounded-t-2xl max-h-[80vh] overflow-y-auto animate-slide-up-drawer"
+            className="absolute bottom-0 left-0 right-0 bg-[var(--surface)] rounded-t-2xl max-h-[80vh] overflow-y-auto animate-slide-up-drawer"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="sticky top-0 bg-white px-4 py-4 border-b border-gray-200 flex items-center justify-between">
+            <div className="sticky top-0 bg-[var(--surface)] px-4 py-4 border-b border-[var(--divider)] flex items-center justify-between">
               <h2 className="text-lg font-bold">Filters</h2>
               <button
                 onClick={() => setShowMobileFilters(false)}
-                className="p-2 hover:bg-gray-100 rounded-lg"
+                className="p-2 hover:bg-[var(--surface-2)] rounded-lg"
               >
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -324,29 +324,29 @@ function WomenCategoryContent() {
             <div className="p-4 space-y-6">
               {/* Price Range */}
               <div>
-                <h3 className="font-semibold text-sm mb-3">Price Range</h3>
+                <h3 className="font-semibold text-sm mb-3 text-[var(--text)]">Price Range</h3>
                 <div className="flex items-center gap-2">
                   <input
                     type="number"
                     placeholder="Min"
                     value={priceMin}
                     onChange={(e) => setPriceMin(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-black"
+                    className="w-full px-3 py-2 border border-[var(--border)] rounded-lg bg-[var(--input-fill)] text-[var(--text)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--brand)]"
                   />
-                  <span className="text-gray-400">-</span>
+                  <span className="text-[var(--text-3)]">-</span>
                   <input
                     type="number"
                     placeholder="Max"
                     value={priceMax}
                     onChange={(e) => setPriceMax(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-black"
+                    className="w-full px-3 py-2 border border-[var(--border)] rounded-lg bg-[var(--input-fill)] text-[var(--text)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--brand)]"
                   />
                 </div>
               </div>
 
               {/* Size */}
               <div>
-                <h3 className="font-semibold text-sm mb-3">Size</h3>
+                <h3 className="font-semibold text-sm mb-3 text-[var(--text)]">Size</h3>
                 <div className="flex flex-wrap gap-2">
                   {womenSizes.map((s) => (
                     <button
@@ -354,8 +354,8 @@ function WomenCategoryContent() {
                       onClick={() => setSize(size === s ? undefined : s)}
                       className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
                         size === s
-                          ? 'bg-black text-white'
-                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                          ? 'bg-[var(--text)] text-[var(--bg)]'
+                          : 'bg-[var(--surface-2)] text-[var(--text-2)] hover:bg-[var(--surface)]'
                       }`}
                     >
                       {s}
@@ -366,7 +366,7 @@ function WomenCategoryContent() {
 
               {/* Condition */}
               <div>
-                <h3 className="font-semibold text-sm mb-3">Condition</h3>
+                <h3 className="font-semibold text-sm mb-3 text-[var(--text)]">Condition</h3>
                 <div className="space-y-2">
                   {CONDITIONS.map(({ value, label }) => (
                     <label key={value} className="flex items-center gap-2 cursor-pointer">
@@ -375,25 +375,25 @@ function WomenCategoryContent() {
                         name="condition-mobile"
                         checked={condition === value}
                         onChange={() => setCondition(value)}
-                        className="w-4 h-4 border-gray-300 text-black focus:ring-black"
+                        className="w-4 h-4 border-[var(--border)] text-[var(--text)] focus:ring-[var(--brand)]"
                       />
-                      <span className="text-sm text-gray-700">{label}</span>
+                      <span className="text-sm text-[var(--text-2)]">{label}</span>
                     </label>
                   ))}
                 </div>
               </div>
             </div>
 
-            <div className="sticky bottom-0 bg-white p-4 border-t border-gray-200 flex gap-3">
+            <div className="sticky bottom-0 bg-[var(--surface)] p-4 border-t border-[var(--divider)] flex gap-3">
               <button
                 onClick={clearFilters}
-                className="flex-1 py-3 border border-gray-300 rounded-lg font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+                className="flex-1 py-3 border border-[var(--border)] rounded-lg font-medium text-[var(--text-2)] hover:bg-[var(--surface-2)] transition-colors"
               >
                 Clear all
               </button>
               <button
                 onClick={() => setShowMobileFilters(false)}
-                className="flex-1 py-3 bg-black text-white rounded-lg font-medium hover:bg-gray-800 transition-colors"
+                className="flex-1 py-3 bg-[var(--text)] text-[var(--bg)] rounded-lg font-medium hover:opacity-90 transition-colors"
               >
                 Show results
               </button>
@@ -410,8 +410,8 @@ function WomenCategoryContent() {
 export default function WomenCategoryPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+      <div className="min-h-screen flex items-center justify-center bg-[var(--bg)]">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--text)]"></div>
       </div>
     }>
       <WomenCategoryContent />

@@ -16,6 +16,9 @@ import { useSavedItems } from '@/hooks/useSavedItems';
 import { useInfiniteScroll } from '@/hooks/useInfiniteScroll';
 import { Product, ProductCategory, ProductCondition, DeliveryMethod, MarketplaceTab } from '@/types';
 
+// Marketplace and listings are public: no sign-in required to browse.
+// Sign-in is only required for: uploading listings, saving items, following sellers, and purchasing.
+
 function MarketplaceContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -29,7 +32,7 @@ function MarketplaceContent() {
   const [hasMore, setHasMore] = useState(true);
   const [page, setPage] = useState(1);
   
-  // Tab state
+  // Tab state — default to 'for-you' so guests always see listings
   const [activeTab, setActiveTab] = useState<MarketplaceTab>(
     (searchParams.get('tab') as MarketplaceTab) || 'for-you'
   );
@@ -84,11 +87,12 @@ function MarketplaceContent() {
     rootMargin: '200px',
   });
 
-  // Fetch current user
+  // Fetch current user (non-blocking: listings load regardless)
   useEffect(() => {
     const fetchUser = async () => {
       try {
         const response = await fetch('/api/auth/me');
+        if (!response.ok) return;
         const data = await response.json();
         if (data.user) {
           setCurrentUser(data.user);
@@ -99,6 +103,16 @@ function MarketplaceContent() {
     };
     fetchUser();
   }, []);
+
+  // When not logged in, force "for-you" tab so guests always see listings (not "Sign in to follow sellers")
+  useEffect(() => {
+    if (!currentUser && activeTab === 'following') {
+      setActiveTab('for-you');
+      const params = new URLSearchParams(searchParams.toString());
+      params.set('tab', 'for-you');
+      router.replace(`/marketplace?${params.toString()}`, { scroll: false });
+    }
+  }, [currentUser, activeTab, searchParams, router]);
 
   // Fetch followed sellers when user is logged in
   useEffect(() => {

@@ -11,6 +11,8 @@ The following pages now require authentication:
 - `/dashboard` - Seller dashboard
 - `/listings/new` - Create new listing (Sell page)
 
+**Public (no sign-in required to view):** Marketplace (`/marketplace`), product detail (`/product/[id]`), swipe discovery (home), and category pages. Sign-in is only required when the user tries to **purchase**, **save** an item, or **create a listing**.
+
 ### 2. Flow for Unauthenticated Users
 
 **Scenario 1: User clicks "Sell" button without being logged in**

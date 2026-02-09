@@ -15,7 +15,7 @@ export default function ProductDetailPage() {
   const params = useParams();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { user } = useAuth();
+  const { user, openAuthModal } = useAuth();
   const [product, setProduct] = useState<Product | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedImage, setSelectedImage] = useState(0);
@@ -108,8 +108,9 @@ export default function ProductDetailPage() {
   };
 
   const handleBuyNow = () => {
+    // Sign-in required only when about to buy (listing view is public)
     if (!user) {
-      router.push(`/login?returnTo=/product/${params.id}`);
+      openAuthModal(`/product/${params.id}`, undefined, 'signin');
       return;
     }
 
@@ -148,7 +149,7 @@ export default function ProductDetailPage() {
   const images = Array.isArray(product.images) ? product.images : [];
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50">
+    <div className="min-h-screen flex flex-col bg-[var(--bg)]">
       <Navbar />
 
       <div className="flex-1">
@@ -163,7 +164,7 @@ export default function ProductDetailPage() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {/* Images */}
             <div>
-              <div className="bg-white rounded-lg overflow-hidden mb-4">
+              <div className="bg-[var(--surface)] rounded-lg overflow-hidden mb-4 border border-[var(--border)]">
                 <div className="relative aspect-square">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
@@ -180,7 +181,7 @@ export default function ProductDetailPage() {
                       key={idx}
                       onClick={() => setSelectedImage(idx)}
                       className={`relative aspect-square rounded-lg overflow-hidden border-2 ${
-                        selectedImage === idx ? 'border-emerald-600' : 'border-gray-200'
+                        selectedImage === idx ? 'border-emerald-600' : 'border-[var(--border)]'
                       }`}
                     >
                       {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -197,61 +198,61 @@ export default function ProductDetailPage() {
 
             {/* Details */}
             <div>
-              <div className="bg-white rounded-lg p-6">
-                <h1 className="text-3xl font-bold mb-2">{product.title}</h1>
+              <div className="bg-[var(--surface)] rounded-lg p-6 border border-[var(--border)]">
+                <h1 className="text-3xl font-bold mb-2 text-[var(--text)]">{product.title}</h1>
                 <p className="text-4xl font-bold text-emerald-600 mb-6">
                   {formatPrice(product.price)}
                 </p>
 
                 <div className="space-y-4 mb-6">
                   <div className="flex items-center gap-2">
-                    <span className="text-gray-600">Condition:</span>
-                    <span className="font-medium capitalize">{product.condition?.replace('_', ' ')}</span>
+                    <span className="text-[var(--text-2)]">Condition:</span>
+                    <span className="font-medium capitalize text-[var(--text)]">{product.condition?.replace('_', ' ')}</span>
                   </div>
                   {product.size && (
                     <div className="flex items-center gap-2">
-                      <span className="text-gray-600">Size:</span>
-                      <span className="font-medium">{product.size}</span>
+                      <span className="text-[var(--text-2)]">Size:</span>
+                      <span className="font-medium text-[var(--text)]">{product.size}</span>
                     </div>
                   )}
                   {product.brand && (
                     <div className="flex items-center gap-2">
-                      <span className="text-gray-600">Brand:</span>
-                      <span className="font-medium">{product.brand}</span>
+                      <span className="text-[var(--text-2)]">Brand:</span>
+                      <span className="font-medium text-[var(--text)]">{product.brand}</span>
                     </div>
                   )}
                   <div className="flex items-center gap-2">
-                    <span className="text-gray-600">Category:</span>
+                    <span className="text-[var(--text-2)]">Category:</span>
                     <span className="font-medium capitalize">{product.category} - {product.subcategory}</span>
                   </div>
                 </div>
 
-                <div className="border-t border-gray-200 pt-6 mb-6">
-                  <h2 className="font-semibold text-lg mb-2">Description</h2>
-                  <p className="text-gray-700">{product.description}</p>
+                <div className="border-t border-[var(--divider)] pt-6 mb-6">
+                  <h2 className="font-semibold text-lg mb-2 text-[var(--text)]">Description</h2>
+                  <p className="text-[var(--text-2)]">{product.description}</p>
                 </div>
 
-                <div className="border-t border-gray-200 pt-6 mb-6">
-                  <h2 className="font-semibold text-lg mb-2">Delivery Options</h2>
-                  <p className="text-gray-700 capitalize">{product.delivery_method?.replace('_', ' ')}</p>
+                <div className="border-t border-[var(--divider)] pt-6 mb-6">
+                  <h2 className="font-semibold text-lg mb-2 text-[var(--text)]">Delivery Options</h2>
+                  <p className="text-[var(--text-2)] capitalize">{product.delivery_method?.replace('_', ' ')}</p>
                   {product.meetup_location && (
-                    <p className="text-sm text-gray-600 mt-1">Meet-up: {product.meetup_location}</p>
+                    <p className="text-sm text-[var(--text-2)] mt-1">Meet-up: {product.meetup_location}</p>
                   )}
                   {product.shipping_cost && (
-                    <p className="text-sm text-gray-600 mt-1">Shipping: {formatPrice(product.shipping_cost)}</p>
+                    <p className="text-sm text-[var(--text-2)] mt-1">Shipping: {formatPrice(product.shipping_cost)}</p>
                   )}
                 </div>
 
                 {/* Seller Info */}
                 {product.seller && (
-                  <div className="border-t border-gray-200 pt-6 mb-6">
-                    <h2 className="font-semibold text-lg mb-3">Seller Information</h2>
+                  <div className="border-t border-[var(--divider)] pt-6 mb-6">
+                    <h2 className="font-semibold text-lg mb-3 text-[var(--text)]">Seller Information</h2>
                     <div 
-                      className="flex items-center gap-3 cursor-pointer hover:bg-gray-50 p-3 rounded-lg transition-colors"
+                      className="flex items-center gap-3 cursor-pointer hover:bg-[var(--surface-2)] p-3 rounded-lg transition-colors"
                       onClick={() => router.push(`/seller/${product.seller?.id}`)}
                     >
                       {product.seller.avatar_url ? (
-                        <div className="w-12 h-12 rounded-full bg-gray-200 overflow-hidden relative">
+                        <div className="w-12 h-12 rounded-full bg-[var(--surface-2)] overflow-hidden relative">
                           {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img 
                             src={product.seller.avatar_url} 
@@ -260,16 +261,16 @@ export default function ProductDetailPage() {
                           />
                         </div>
                       ) : (
-                        <div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center">
-                          <span className="text-xl font-semibold text-gray-600">
+                        <div className="w-12 h-12 rounded-full bg-[var(--surface-2)] flex items-center justify-center">
+                          <span className="text-xl font-semibold text-[var(--text-2)]">
                             {product.seller.full_name[0].toUpperCase()}
                           </span>
                         </div>
                       )}
                       <div>
-                        <p className="font-medium">{product.seller.full_name}</p>
+                        <p className="font-medium text-[var(--text)]">{product.seller.full_name}</p>
                         {product.seller.location && (
-                          <p className="text-sm text-gray-600">{product.seller.location}</p>
+                          <p className="text-sm text-[var(--text-2)]">{product.seller.location}</p>
                         )}
                       </div>
                     </div>
@@ -306,9 +307,9 @@ export default function ProductDetailPage() {
 
                 {/* Sold Badge */}
                 {product.status === 'sold' && !purchaseSuccess && (
-                  <div className="mb-4 p-4 bg-gray-100 border border-gray-300 rounded-lg text-center">
-                    <p className="font-semibold text-gray-700 text-lg">SOLD</p>
-                    <p className="text-sm text-gray-500">This item has been sold</p>
+                  <div className="mb-4 p-4 bg-[var(--surface-2)] border border-[var(--border)] rounded-lg text-center">
+                    <p className="font-semibold text-[var(--text-2)] text-lg">SOLD</p>
+                    <p className="text-sm text-[var(--text-3)]">This item has been sold</p>
                   </div>
                 )}
 
@@ -327,7 +328,7 @@ export default function ProductDetailPage() {
                   )}
 
                   {user && user.id === product.seller?.id && (
-                    <p className="text-xs text-center text-gray-500">This is your listing</p>
+                    <p className="text-xs text-center text-[var(--text-3)]">This is your listing</p>
                   )}
                 </div>
               </div>

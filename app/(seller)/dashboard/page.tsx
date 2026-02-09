@@ -175,31 +175,31 @@ export default function DashboardPage() {
   // Show loading state while checking authentication
   if (authLoading || !user) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="min-h-screen flex items-center justify-center bg-[var(--bg)]">
         <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mb-4"></div>
-          <p className="text-gray-500">Loading...</p>
+          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--text)] mb-4"></div>
+          <p className="text-[var(--text-2)]">Loading...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-[var(--bg)]">
       <div className="max-w-7xl mx-auto px-4 py-8">
-        <div className="flex justify-between items-center mb-8">
+        <div className="flex flex-col gap-4 mb-8 md:flex-row md:justify-between md:items-center md:gap-0">
           <div>
-            <h1 className="text-3xl font-bold">Seller Dashboard</h1>
-            <p className="text-gray-600 mt-2">Manage your listings and sales</p>
+            <h1 className="text-2xl font-bold md:text-3xl text-[var(--text)]">Seller Dashboard</h1>
+            <p className="text-[var(--text-2)] mt-1 md:mt-2 text-sm md:text-base">Manage your listings and sales</p>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 flex-shrink-0">
             <Link href="/plan">
-              <Button variant="outline" size="lg">
+              <Button variant="outline" size="sm" className="whitespace-nowrap !text-xs !px-3 !py-2 md:!px-6 md:!py-3 md:!text-lg">
                 Manage Plan
               </Button>
             </Link>
             <Link href="/listings/new">
-              <Button variant="primary" size="lg">
+              <Button variant="primary" size="sm" className="whitespace-nowrap !text-xs !px-3 !py-2 md:!px-6 md:!py-3 md:!text-lg">
                 + New Listing
               </Button>
             </Link>
@@ -216,19 +216,19 @@ export default function DashboardPage() {
           <Card>
             <CardContent className="pt-6">
               <div className="text-3xl font-bold text-emerald-600">{stats.activeListings}</div>
-              <div className="text-gray-600 mt-1">Active Listings</div>
+              <div className="text-[var(--text-2)] mt-1">Active Listings</div>
             </CardContent>
           </Card>
           <Card>
             <CardContent className="pt-6">
               <div className="text-3xl font-bold text-blue-600">{stats.totalViews}</div>
-              <div className="text-gray-600 mt-1">Total Views</div>
+              <div className="text-[var(--text-2)] mt-1">Total Views</div>
             </CardContent>
           </Card>
           <Card>
             <CardContent className="pt-6">
               <div className="text-3xl font-bold text-orange-600">{formatPrice(stats.totalEarnings)}</div>
-              <div className="text-gray-600 mt-1">Total Earnings</div>
+              <div className="text-[var(--text-2)] mt-1">Total Earnings</div>
             </CardContent>
           </Card>
         </div>
@@ -236,44 +236,46 @@ export default function DashboardPage() {
         {/* Listings */}
         <Card>
           <CardHeader>
-            <h2 className="text-xl font-semibold">Your Listings</h2>
+            <h2 className="text-xl font-semibold text-[var(--text)]">Your Listings</h2>
           </CardHeader>
           <CardContent>
             {isLoading ? (
-              <div className="text-center py-12 text-gray-500">Loading...</div>
+              <div className="text-center py-12 text-[var(--text-2)]">Loading...</div>
             ) : products.length === 0 ? (
               <div className="text-center py-12">
-                <p className="text-gray-600 mb-4">You haven't created any listings yet</p>
+                <p className="text-[var(--text-2)] mb-4">You haven&apos;t created any listings yet</p>
                 <Link href="/listings/new">
                   <Button variant="primary">Create Your First Listing</Button>
                 </Link>
               </div>
             ) : (
-              <div className="space-y-2">
+              <div className="space-y-3">
                 {products.filter(p => p.status !== 'sold').map((product) => (
-                  <div key={product.id} className="flex gap-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
-                    <div className="w-20 h-20 flex-shrink-0">
-                      <img 
-                        src={product.images[0] || '/placeholder.jpg'} 
-                        alt={product.title}
-                        className="w-full h-full object-cover rounded-lg"
-                      />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-medium text-gray-900 truncate text-sm">{product.title}</h3>
-                      <p className="text-xs text-gray-500 mt-0.5">{product.category} • {product.subcategory}</p>
-                      <div className="flex items-center gap-3 mt-1.5">
-                        <span className="text-base font-bold text-gray-900">{formatPrice(product.price)}</span>
-                        <span className={`text-xs px-2 py-0.5 rounded ${
-                          product.status === 'active' ? 'bg-green-100 text-green-800' :
-                          'bg-gray-100 text-gray-800'
-                        }`}>
-                          {product.status}
-                        </span>
-                        <span className="text-xs text-gray-500">{product.view_count || 0} views</span>
+                  <div key={product.id} className="flex flex-col gap-3 p-3 border border-[var(--border)] rounded-lg hover:bg-[var(--surface-2)] transition-colors sm:flex-row sm:gap-3 sm:items-center">
+                    <div className="flex gap-3 min-w-0 flex-1">
+                      <div className="w-20 h-20 flex-shrink-0">
+                        <img 
+                          src={product.images[0] || '/placeholder.jpg'} 
+                          alt={product.title}
+                          className="w-full h-full object-cover rounded-lg"
+                        />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-medium text-[var(--text)] truncate text-sm">{product.title}</h3>
+                        <p className="text-xs text-[var(--text-3)] mt-0.5">{product.category} • {product.subcategory}</p>
+                        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1.5">
+                          <span className="text-base font-bold text-[var(--text)]">{formatPrice(product.price)}</span>
+                          <span className={`text-xs px-2 py-0.5 rounded ${
+                            product.status === 'active' ? 'bg-[var(--success)]/20 text-[var(--success)]' :
+                            'bg-[var(--surface-2)] text-[var(--text-2)]'
+                          }`}>
+                            {product.status}
+                          </span>
+                          <span className="text-xs text-[var(--text-3)]">{product.view_count || 0} views</span>
+                        </div>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-3 flex-shrink-0 border-t border-[var(--divider)] pt-3 sm:border-t-0 sm:pt-0">
                       {product.status === 'active' && (
                         <BoostButton 
                           product={{ id: product.id, title: product.title }}
@@ -282,12 +284,13 @@ export default function DashboardPage() {
                         />
                       )}
                       <Link href={`/product/${product.id}`}>
-                        <Button variant="outline" size="sm">View</Button>
+                        <Button variant="outline" size="sm" className="whitespace-nowrap">View</Button>
                       </Link>
                       <Button 
                         variant="outline" 
                         size="sm"
                         onClick={() => router.push(`/listings/edit/${product.id}`)}
+                        className="whitespace-nowrap"
                       >
                         Edit
                       </Button>
@@ -297,6 +300,7 @@ export default function DashboardPage() {
                           size="sm"
                           onClick={() => markAsSold(product.id)}
                           disabled={markingAsSold === product.id}
+                          className="whitespace-nowrap"
                         >
                           {markingAsSold === product.id ? 'Marking...' : 'Mark as Sold'}
                         </Button>
@@ -312,47 +316,49 @@ export default function DashboardPage() {
         {/* Sold Items Section */}
         <Card className="mt-6">
           <CardHeader>
-            <h2 className="text-xl font-semibold">Sold Items</h2>
+            <h2 className="text-xl font-semibold text-[var(--text)]">Sold Items</h2>
           </CardHeader>
           <CardContent>
             {isLoading ? (
-              <div className="text-center py-12 text-gray-500">Loading...</div>
+              <div className="text-center py-12 text-[var(--text-2)]">Loading...</div>
             ) : soldProducts.length === 0 ? (
               <div className="text-center py-12">
-                <p className="text-gray-600">You haven't sold any items yet</p>
+                <p className="text-[var(--text-2)]">You haven&apos;t sold any items yet</p>
               </div>
             ) : (
-              <div className="space-y-2">
+              <div className="space-y-3">
                 {soldProducts.map((product) => (
-                  <div key={product.id} className="flex gap-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
-                    <div className="w-20 h-20 flex-shrink-0">
-                      <img 
-                        src={product.images[0] || '/placeholder.jpg'} 
-                        alt={product.title}
-                        className="w-full h-full object-cover rounded-lg"
-                      />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-medium text-gray-900 truncate text-sm">{product.title}</h3>
-                      <p className="text-xs text-gray-500 mt-0.5">{product.category} • {product.subcategory}</p>
-                      <div className="flex items-center gap-3 mt-1.5">
-                        <span className="text-base font-bold text-gray-900">{formatPrice(product.price)}</span>
-                        <span className="text-xs px-2 py-0.5 rounded bg-blue-100 text-blue-800">
-                          sold
-                        </span>
-                        <span className="text-xs text-gray-500">{product.view_count || 0} views</span>
+                  <div key={product.id} className="flex flex-col gap-3 p-3 border border-[var(--border)] rounded-lg hover:bg-[var(--surface-2)] transition-colors sm:flex-row sm:gap-3 sm:items-center">
+                    <div className="flex gap-3 min-w-0 flex-1">
+                      <div className="w-20 h-20 flex-shrink-0">
+                        <img 
+                          src={product.images[0] || '/placeholder.jpg'} 
+                          alt={product.title}
+                          className="w-full h-full object-cover rounded-lg"
+                        />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-medium text-[var(--text)] truncate text-sm">{product.title}</h3>
+                        <p className="text-xs text-[var(--text-3)] mt-0.5">{product.category} • {product.subcategory}</p>
+                        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1.5">
+                          <span className="text-base font-bold text-[var(--text)]">{formatPrice(product.price)}</span>
+                          <span className="text-xs px-2 py-0.5 rounded bg-blue-500/20 text-blue-400">
+                            sold
+                          </span>
+                          <span className="text-xs text-[var(--text-3)]">{product.view_count || 0} views</span>
+                        </div>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-3 flex-shrink-0 border-t border-[var(--divider)] pt-3 sm:border-t-0 sm:pt-0">
                       <Link href={`/product/${product.id}`}>
-                        <Button variant="outline" size="sm">View</Button>
+                        <Button variant="outline" size="sm" className="whitespace-nowrap">View</Button>
                       </Link>
                       <Button 
                         variant="outline" 
                         size="sm"
                         onClick={() => markAsActive(product.id)}
                         disabled={markingAsActive === product.id}
-                        className="text-orange-600 hover:text-orange-700 hover:bg-orange-50"
+                        className="text-orange-500 hover:text-orange-400 hover:bg-orange-500/10 whitespace-nowrap"
                       >
                         {markingAsActive === product.id ? 'Undoing...' : 'Did you mark this by accident? Undo'}
                       </Button>

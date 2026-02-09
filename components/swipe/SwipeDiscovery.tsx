@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Product } from '@/types';
 import { useAuth } from '@/contexts/AuthContext';
 import SwipeCardStack from './SwipeCardStack';
@@ -62,8 +63,10 @@ const PAGE_SIZE = 20;
 const PREFETCH_THRESHOLD = 5; // prefetch when this many cards remain
 
 // ---- Component ----
+// Swipe feed is public: anyone can browse. Sign-in is only required for Save and for purchasing (handled on product page).
 
 export default function SwipeDiscovery() {
+  const router = useRouter();
   const { user, openAuthModal } = useAuth();
 
   // Products & pagination
@@ -152,11 +155,15 @@ export default function SwipeDiscovery() {
     [filters, seenIds]
   );
 
-  // Initial fetch
+  // Initial fetch — clear loading quickly so we show listings or empty state
   useEffect(() => {
     setIsLoading(true);
     setPage(1);
     fetchProducts(1, true);
+
+    // Stop showing loading after 1.5s so we never block the UI
+    const timeoutId = setTimeout(() => setIsLoading(false), 1500);
+    return () => clearTimeout(timeoutId);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filters]);
 
@@ -194,7 +201,11 @@ export default function SwipeDiscovery() {
 
   const handleSwipe = useCallback(
     (direction: 'left' | 'right', product: Product) => {
-      addToSeen(product.id);
+      // Only add to "seen" when skipping (left). When saving (right), don't mark as seen so
+      // if the user removes the item from their cart later, it can reappear in the swipe feed.
+      if (direction === 'left') {
+        addToSeen(product.id);
+      }
 
       if (direction === 'right') {
         // Save requires auth
@@ -206,7 +217,11 @@ export default function SwipeDiscovery() {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ product_id: product.id }),
-          }).catch(() => {});
+          })
+            .then((res) => {
+              if (res.ok || res.status === 409) window.dispatchEvent(new CustomEvent('saved-items-changed'));
+            })
+            .catch(() => {});
         }
         logSwipeEvent('swipe_right', product.id);
       } else {
@@ -216,6 +231,15 @@ export default function SwipeDiscovery() {
       setCurrentIndex((prev) => prev + 1);
     },
     [user, openAuthModal, addToSeen]
+  );
+
+  const handleBuyNow = useCallback(
+    (product: Product) => {
+      addToSeen(product.id);
+      setCurrentIndex((prev) => prev + 1);
+      router.push(`/product/${product.id}`);
+    },
+    [addToSeen, router]
   );
 
   // ---- Fullscreen Handlers ----
@@ -237,13 +261,17 @@ export default function SwipeDiscovery() {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ product_id: fullscreenProduct.id }),
-    }).catch(() => {});
+    })
+      .then((res) => {
+        if (res.ok || res.status === 409) window.dispatchEvent(new CustomEvent('saved-items-changed'));
+      })
+      .catch(() => {});
 
     logSwipeEvent('swipe_right', fullscreenProduct.id);
-    addToSeen(fullscreenProduct.id);
+    // Don't add to seen: if they remove from cart later, item can reappear in swipe feed
     setFullscreenProduct(null);
     setCurrentIndex((prev) => prev + 1);
-  }, [fullscreenProduct, user, openAuthModal, addToSeen]);
+  }, [fullscreenProduct, user, openAuthModal]);
 
   const handleFullscreenSkip = useCallback(() => {
     if (!fullscreenProduct) return;
@@ -252,6 +280,14 @@ export default function SwipeDiscovery() {
     setFullscreenProduct(null);
     setCurrentIndex((prev) => prev + 1);
   }, [fullscreenProduct, addToSeen]);
+
+  const handleFullscreenBuyNow = useCallback(() => {
+    if (!fullscreenProduct) return;
+    addToSeen(fullscreenProduct.id);
+    setFullscreenProduct(null);
+    setCurrentIndex((prev) => prev + 1);
+    router.push(`/product/${fullscreenProduct.id}`);
+  }, [fullscreenProduct, addToSeen, router]);
 
   // ---- Filter Handlers ----
 
@@ -408,34 +444,9 @@ export default function SwipeDiscovery() {
         )}
       </div>
 
-      {/* Card Stack Area */}
+      {/* Card Stack Area — show listings as soon as we have them; minimal loading */}
       <div className="relative min-h-[500px] flex items-center justify-center">
-        {isLoading && products.length === 0 ? (
-          /* Loading State */
-          <div className="flex flex-col items-center gap-4 text-gray-400">
-            <div className="w-12 h-12 border-4 border-gray-200 border-t-black rounded-full animate-spin" />
-            <p className="text-sm font-medium">Finding items for you...</p>
-          </div>
-        ) : isDone ? (
-          /* Empty / Done State */
-          <div className="flex flex-col items-center gap-4 text-center px-6">
-            <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center">
-              <svg className="w-10 h-10 text-gray-400" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M15.182 15.182a4.5 4.5 0 01-6.364 0M21 12a9 9 0 11-18 0 9 9 0 0118 0zM9.75 9.75c0 .414-.168.75-.375.75S9 10.164 9 9.75 9.168 9 9.375 9s.375.336.375.75zm-.375 0h.008v.015h-.008V9.75zm5.625 0c0 .414-.168.75-.375.75s-.375-.336-.375-.75.168-.75.375-.75.375.336.375.75zm-.375 0h.008v.015h-.008V9.75z" />
-              </svg>
-            </div>
-            <h3 className="text-xl font-bold text-gray-900">You&apos;ve seen everything!</h3>
-            <p className="text-gray-500 max-w-xs">
-              Check back later for new listings, or browse the full marketplace.
-            </p>
-            <Link
-              href="/marketplace"
-              className="mt-2 px-6 py-2.5 bg-black text-white rounded-full text-sm font-semibold hover:bg-gray-800 transition-colors"
-            >
-              Browse Marketplace
-            </Link>
-          </div>
-        ) : currentProduct ? (
+        {currentProduct ? (
           <>
             <SwipeCardStack
               products={products}
@@ -444,8 +455,8 @@ export default function SwipeDiscovery() {
               onExpandClick={handleExpandClick}
             />
 
-            {/* Skip / Save action buttons (below card) */}
-            <div className="absolute -bottom-10 left-0 right-0 flex justify-center gap-8 text-xs font-medium">
+            {/* Skip / Save / Buy now action buttons (below card) */}
+            <div className="absolute -bottom-10 left-0 right-0 flex justify-center items-center gap-6 sm:gap-8 text-xs font-medium flex-wrap">
               <button
                 type="button"
                 onClick={() => handleSwipe('left', currentProduct)}
@@ -468,9 +479,52 @@ export default function SwipeDiscovery() {
                   <path strokeLinecap="round" strokeLinejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" />
                 </svg>
               </button>
+              <button
+                type="button"
+                onClick={() => handleBuyNow(currentProduct)}
+                className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-black text-white font-semibold hover:bg-gray-800 transition-colors cursor-pointer touch-manipulation"
+                aria-label="Buy now - view listing"
+              >
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                </svg>
+                Buy now
+              </button>
             </div>
           </>
-        ) : null}
+        ) : (
+          /* No current card: loading (brief) or no listings / seen all */
+          <div className="flex flex-col items-center gap-4 text-center px-6">
+            {isLoading && products.length === 0 ? (
+              <div className="flex flex-col items-center gap-3 text-gray-400">
+                <div className="w-10 h-10 border-2 border-gray-200 border-t-black rounded-full animate-spin" />
+                <p className="text-xs font-medium">Loading listings...</p>
+              </div>
+            ) : (
+              <>
+                <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center">
+                  <svg className="w-10 h-10 text-gray-400" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M15.182 15.182a4.5 4.5 0 01-6.364 0M21 12a9 9 0 11-18 0 9 9 0 0118 0zM9.75 9.75c0 .414-.168.75-.375.75S9 10.164 9 9.75 9.168 9 9.375 9s.375.336.375.75zm-.375 0h.008v.015h-.008V9.75zm5.625 0c0 .414-.168.75-.375.75s-.375-.336-.375-.75.168-.75.375-.75.375.336.375.75zm-.375 0h.008v.015h-.008V9.75z" />
+                  </svg>
+                </div>
+                <h3 className="text-xl font-bold text-gray-900">
+                  {products.length === 0 ? 'No listings yet' : "You've seen everything!"}
+                </h3>
+                <p className="text-gray-500 max-w-xs">
+                  {products.length === 0
+                    ? 'Listings will show here as sellers add them. Browse the marketplace in the meantime.'
+                    : 'Check back later for new listings, or browse the full marketplace.'}
+                </p>
+                <Link
+                  href="/marketplace"
+                  className="mt-2 px-6 py-2.5 bg-black text-white rounded-full text-sm font-semibold hover:bg-gray-800 transition-colors"
+                >
+                  Browse Marketplace
+                </Link>
+              </>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Fullscreen Product View */}
@@ -481,6 +535,7 @@ export default function SwipeDiscovery() {
           onClose={() => setFullscreenProduct(null)}
           onSave={handleFullscreenSave}
           onSkip={handleFullscreenSkip}
+          onBuyNow={handleFullscreenBuyNow}
         />
       )}
     </div>

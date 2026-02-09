@@ -1,19 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
 import { getServiceSupabase } from '@/lib/db';
 import { rateLimit, getRateLimitIdentifier } from '@/lib/rateLimit';
-
-// Create admin client for user creation
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false
-    }
-  }
-);
 
 export async function POST(request: NextRequest) {
   try {
@@ -108,7 +95,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Create Supabase auth user (without email confirmation for now)
-    const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
+    const { data: authData, error: authError } = await serviceSupabase.auth.admin.createUser({
       email: email.toLowerCase(),
       password,
       email_confirm: true, // Auto-confirm email for now
@@ -152,7 +139,7 @@ export async function POST(request: NextRequest) {
     if (userError) {
       console.error('User table insert error:', userError);
       // Rollback: delete the auth user
-      await supabaseAdmin.auth.admin.deleteUser(authData.user.id);
+      await serviceSupabase.auth.admin.deleteUser(authData.user.id);
       
       // Provide more specific error messages
       let errorMessage = 'Failed to create account. Please try again.';

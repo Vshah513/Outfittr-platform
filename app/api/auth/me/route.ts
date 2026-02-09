@@ -2,8 +2,15 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createSupabaseServerClient } from '@/lib/auth';
 import { getServiceSupabase } from '@/lib/db';
 
+const hasSupabaseConfig = () =>
+  Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
+
 export async function GET(request: NextRequest) {
   try {
+    // Never fail when Supabase is not configured — return no user so frontend can still show public content
+    if (!hasSupabaseConfig()) {
+      return NextResponse.json({ user: null });
+    }
     const supabase = await createSupabaseServerClient(request);
     const { data: { session }, error } = await supabase.auth.getSession();
 

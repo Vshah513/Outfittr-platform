@@ -1,9 +1,11 @@
 import './globals.css'
 import type { Metadata, Viewport } from 'next'
+import Script from 'next/script'
 import { Inter } from 'next/font/google'
 import { BundleProvider } from '@/components/bundles/BundleContext'
 import BundleTray from '@/components/bundles/BundleTray'
 import { AuthProvider } from '@/contexts/AuthContext'
+import { ThemeProvider } from '@/contexts/ThemeContext'
 import AuthModal from '@/components/auth/AuthModal'
 import { Analytics } from '@vercel/analytics/react'
 
@@ -45,8 +47,9 @@ export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
   themeColor: '#000000',
-  viewportFit: 'cover',
 }
+
+const themeScript = `(function(){try{var t=localStorage.getItem('outfittr-theme');if(t==='dark'||t==='light')document.documentElement.setAttribute('data-theme',t);}catch(e){}})();`
 
 export default function RootLayout({
   children,
@@ -54,15 +57,20 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body className={inter.className}>
-        <AuthProvider>
-          <BundleProvider>
-            {children}
-            <BundleTray />
-            <AuthModal />
-          </BundleProvider>
-        </AuthProvider>
+        <Script id="theme-init" strategy="beforeInteractive">
+          {themeScript}
+        </Script>
+        <ThemeProvider>
+          <AuthProvider>
+            <BundleProvider>
+              {children}
+              <BundleTray />
+              <AuthModal />
+            </BundleProvider>
+          </AuthProvider>
+        </ThemeProvider>
         <Analytics />
       </body>
     </html>

@@ -101,28 +101,28 @@ export default function ProfileDropdown({ user, onClose }: ProfileDropdownProps)
     : 1;
 
   return (
-    <div className="absolute right-0 mt-2 w-96 max-w-[calc(100vw-2rem)] bg-white rounded-xl shadow-2xl border border-gray-200 z-50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
+    <div className="absolute right-0 mt-2 w-96 max-w-[calc(100vw-2rem)] rounded-xl shadow-2xl border z-[60] overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200 bg-[var(--surface)] border-[var(--border)]">
       {/* User Info Header */}
-      <div className="bg-gradient-to-br from-gray-50 to-white px-6 py-5 border-b border-gray-100">
+      <div className="px-6 py-5 border-b bg-[var(--surface-2)] border-[var(--divider)]">
         <div className="flex items-center gap-4">
           {user.avatar_url ? (
             <img
               src={user.avatar_url}
               alt={user.full_name}
-              className="w-14 h-14 rounded-full object-cover ring-2 ring-gray-200"
+              className="w-14 h-14 rounded-full object-cover ring-2 ring-[var(--border)]"
             />
           ) : (
-            <div className="w-14 h-14 rounded-full bg-gradient-to-br from-gray-200 to-gray-300 flex items-center justify-center ring-2 ring-gray-200">
-              <svg className="w-7 h-7 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="w-14 h-14 rounded-full flex items-center justify-center ring-2 bg-[var(--surface-2)] ring-[var(--border)]">
+              <svg className="w-7 h-7 text-[var(--text-2)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
               </svg>
             </div>
           )}
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-semibold text-gray-900 truncate">{user.full_name}</p>
-            <p className="text-xs text-gray-500 truncate">{user.email}</p>
+            <p className="text-sm font-semibold text-[var(--text)] truncate">{user.full_name}</p>
+            <p className="text-xs text-[var(--text-2)] truncate">{user.email}</p>
             {user.username && (
-              <p className="text-xs text-gray-400 truncate">@{user.username}</p>
+              <p className="text-xs text-[var(--text-3)] truncate">@{user.username}</p>
             )}
           </div>
         </div>
@@ -130,21 +130,21 @@ export default function ProfileDropdown({ user, onClose }: ProfileDropdownProps)
 
       {/* Seller Analytics Section */}
       {isSeller && (
-        <div className="px-6 py-5 bg-gradient-to-br from-blue-50 to-indigo-50 border-b border-blue-100">
+        <div className="px-6 py-5 border-b bg-[var(--bg-2)] border-[var(--divider)]">
           {isLoading ? (
             <div className="flex flex-col items-center justify-center py-8 gap-3">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-              <p className="text-xs text-gray-600">Loading analytics...</p>
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+              <p className="text-xs text-[var(--text-2)]">Loading analytics...</p>
             </div>
           ) : error ? (
             <div className="py-6 text-center">
-              <svg className="w-12 h-12 text-red-400 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-12 h-12 text-[var(--sale-red)] mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
               </svg>
-              <p className="text-sm text-red-600 mb-2">{error}</p>
+              <p className="text-sm text-[var(--sale-red)] mb-2">{error}</p>
               <button
                 onClick={fetchAnalytics}
-                className="text-xs text-blue-600 hover:text-blue-800 font-medium"
+                className="text-xs text-blue-500 hover:text-blue-400 font-medium"
               >
                 Try Again
               </button>
@@ -154,37 +154,37 @@ export default function ProfileDropdown({ user, onClose }: ProfileDropdownProps)
               {/* Earnings Overview */}
               <div>
                 <div className="flex items-baseline justify-between mb-1">
-                  <span className="text-xs font-medium text-gray-600 uppercase tracking-wide">Total Earnings</span>
-                  <span className="text-2xl font-bold text-gray-900">{formatPrice(analytics.overview.totalEarnings)}</span>
+                  <span className="text-xs font-medium text-[var(--text-2)] uppercase tracking-wide">Total Earnings</span>
+                  <span className="text-2xl font-bold text-[var(--text)]">{formatPrice(analytics.overview.totalEarnings)}</span>
                 </div>
                 <div className="grid grid-cols-3 gap-3 mt-3">
-                  <div className="bg-white rounded-lg px-3 py-2 shadow-sm">
-                    <div className="text-lg font-bold text-blue-600">{analytics.overview.activeListings}</div>
-                    <div className="text-[10px] text-gray-500 uppercase tracking-wide">Active</div>
+                  <div className="bg-[var(--surface)] rounded-lg px-3 py-2 shadow-sm border border-[var(--border)]">
+                    <div className="text-lg font-bold text-blue-500">{analytics.overview.activeListings}</div>
+                    <div className="text-[10px] text-[var(--text-3)] uppercase tracking-wide">Active</div>
                   </div>
-                  <div className="bg-white rounded-lg px-3 py-2 shadow-sm">
-                    <div className="text-lg font-bold text-green-600">{analytics.overview.soldItems}</div>
-                    <div className="text-[10px] text-gray-500 uppercase tracking-wide">Sold</div>
+                  <div className="bg-[var(--surface)] rounded-lg px-3 py-2 shadow-sm border border-[var(--border)]">
+                    <div className="text-lg font-bold text-green-500">{analytics.overview.soldItems}</div>
+                    <div className="text-[10px] text-[var(--text-3)] uppercase tracking-wide">Sold</div>
                   </div>
-                  <div className="bg-white rounded-lg px-3 py-2 shadow-sm">
-                    <div className="text-lg font-bold text-purple-600">{analytics.overview.totalViews}</div>
-                    <div className="text-[10px] text-gray-500 uppercase tracking-wide">Views</div>
+                  <div className="bg-[var(--surface)] rounded-lg px-3 py-2 shadow-sm border border-[var(--border)]">
+                    <div className="text-lg font-bold text-purple-500">{analytics.overview.totalViews}</div>
+                    <div className="text-[10px] text-[var(--text-3)] uppercase tracking-wide">Views</div>
                   </div>
                 </div>
               </div>
 
               {/* Top Selling Categories Chart */}
               {analytics.topCategories.length > 0 && (
-                <div className="bg-white rounded-lg p-4 shadow-sm">
-                  <h4 className="text-xs font-semibold text-gray-700 uppercase tracking-wide mb-3">Top Selling</h4>
+                <div className="bg-[var(--surface)] rounded-lg p-4 shadow-sm border border-[var(--border)]">
+                  <h4 className="text-xs font-semibold text-[var(--text-2)] uppercase tracking-wide mb-3">Top Selling</h4>
                   <div className="space-y-2.5">
                     {analytics.topCategories.map((category, index) => (
                       <div key={category.name} className="group">
                         <div className="flex items-center justify-between mb-1">
-                          <span className="text-xs font-medium text-gray-700 truncate flex-1">{category.name}</span>
-                          <span className="text-xs font-bold text-gray-900 ml-2">{category.count}</span>
+                          <span className="text-xs font-medium text-[var(--text-2)] truncate flex-1">{category.name}</span>
+                          <span className="text-xs font-bold text-[var(--text)] ml-2">{category.count}</span>
                         </div>
-                        <div className="relative h-2 bg-gray-100 rounded-full overflow-hidden">
+                        <div className="relative h-2 rounded-full overflow-hidden bg-[var(--surface-2)]">
                           <div
                             className={`absolute inset-y-0 left-0 rounded-full transition-all duration-500 ${
                               index === 0 ? 'bg-gradient-to-r from-blue-500 to-blue-600' :
@@ -196,7 +196,7 @@ export default function ProfileDropdown({ user, onClose }: ProfileDropdownProps)
                             style={{ width: `${(category.count / maxCategoryValue) * 100}%` }}
                           />
                         </div>
-                        <div className="text-[10px] text-gray-500 mt-0.5">
+                        <div className="text-[10px] text-[var(--text-3)] mt-0.5">
                           {formatPrice(category.earnings)} earned
                         </div>
                       </div>
@@ -207,8 +207,8 @@ export default function ProfileDropdown({ user, onClose }: ProfileDropdownProps)
 
               {/* Sales Trend Mini Chart */}
               {analytics.salesTrend.length > 0 && (
-                <div className="bg-white rounded-lg p-4 shadow-sm">
-                  <h4 className="text-xs font-semibold text-gray-700 uppercase tracking-wide mb-3">Sales Trend (30 days)</h4>
+                <div className="bg-[var(--surface)] rounded-lg p-4 shadow-sm border border-[var(--border)]">
+                  <h4 className="text-xs font-semibold text-[var(--text-2)] uppercase tracking-wide mb-3">Sales Trend (30 days)</h4>
                   <div className="flex items-end justify-between h-16 gap-1">
                     {analytics.salesTrend.map((point, index) => {
                       const maxAmount = Math.max(...analytics.salesTrend.map(p => p.amount));
@@ -223,7 +223,7 @@ export default function ProfileDropdown({ user, onClose }: ProfileDropdownProps)
                       );
                     })}
                   </div>
-                  <div className="flex justify-between mt-2 text-[10px] text-gray-500">
+                  <div className="flex justify-between mt-2 text-[10px] text-[var(--text-3)]">
                     <span>4 weeks ago</span>
                     <span>Today</span>
                   </div>
@@ -233,15 +233,15 @@ export default function ProfileDropdown({ user, onClose }: ProfileDropdownProps)
               {/* Average Price */}
               {analytics.overview.averagePrice > 0 && (
                 <div className="flex items-center justify-between text-xs">
-                  <span className="text-gray-600">Avg. Item Price</span>
-                  <span className="font-semibold text-gray-900">{formatPrice(analytics.overview.averagePrice)}</span>
+                  <span className="text-[var(--text-2)]">Avg. Item Price</span>
+                  <span className="font-semibold text-[var(--text)]">{formatPrice(analytics.overview.averagePrice)}</span>
                 </div>
               )}
             </div>
           ) : (
             <div className="text-center py-6">
-              <p className="text-sm text-gray-600">No sales data yet</p>
-              <p className="text-xs text-gray-500 mt-1">Start selling to see your analytics</p>
+              <p className="text-sm text-[var(--text-2)]">No sales data yet</p>
+              <p className="text-xs text-[var(--text-3)] mt-1">Start selling to see your analytics</p>
             </div>
           )}
         </div>
@@ -251,7 +251,7 @@ export default function ProfileDropdown({ user, onClose }: ProfileDropdownProps)
       <div className="py-2">
         <Link
           href="/dashboard"
-          className="flex items-center gap-3 px-6 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+          className="flex items-center gap-3 px-6 py-2.5 text-sm text-[var(--text)] hover:bg-[var(--surface-2)] transition-colors"
           onClick={onClose}
         >
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -264,7 +264,7 @@ export default function ProfileDropdown({ user, onClose }: ProfileDropdownProps)
           <>
             <Link
               href="/listings/new"
-              className="flex items-center gap-3 px-6 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+              className="flex items-center gap-3 px-6 py-2.5 text-sm text-[var(--text)] hover:bg-[var(--surface-2)] transition-colors"
               onClick={onClose}
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -275,7 +275,7 @@ export default function ProfileDropdown({ user, onClose }: ProfileDropdownProps)
 
             <Link
               href="/dashboard"
-              className="flex items-center gap-3 px-6 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+              className="flex items-center gap-3 px-6 py-2.5 text-sm text-[var(--text)] hover:bg-[var(--surface-2)] transition-colors"
               onClick={onClose}
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -288,7 +288,7 @@ export default function ProfileDropdown({ user, onClose }: ProfileDropdownProps)
 
         <Link
           href="/saved"
-          className="flex items-center gap-3 px-6 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+          className="flex items-center gap-3 px-6 py-2.5 text-sm text-[var(--text)] hover:bg-[var(--surface-2)] transition-colors"
           onClick={onClose}
         >
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -299,7 +299,7 @@ export default function ProfileDropdown({ user, onClose }: ProfileDropdownProps)
 
         <Link
           href="/settings"
-          className="flex items-center gap-3 px-6 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+          className="flex items-center gap-3 px-6 py-2.5 text-sm text-[var(--text)] hover:bg-[var(--surface-2)] transition-colors"
           onClick={onClose}
         >
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -312,7 +312,7 @@ export default function ProfileDropdown({ user, onClose }: ProfileDropdownProps)
         {user.is_admin && (
           <Link
             href="/blog/admin"
-            className="flex items-center gap-3 px-6 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors border-t border-gray-100 mt-2 pt-2"
+            className="flex items-center gap-3 px-6 py-2.5 text-sm text-[var(--text)] hover:bg-[var(--surface-2)] transition-colors border-t border-[var(--divider)] mt-2 pt-2"
             onClick={onClose}
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -324,10 +324,10 @@ export default function ProfileDropdown({ user, onClose }: ProfileDropdownProps)
       </div>
 
       {/* Sign Out */}
-      <div className="border-t border-gray-200 py-2">
+      <div className="border-t border-[var(--divider)] py-2">
         <button
           onClick={handleSignOut}
-          className="flex items-center gap-3 px-6 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors w-full"
+          className="flex items-center gap-3 px-6 py-2.5 text-sm text-[var(--sale-red)] hover:bg-[var(--sale-red)]/10 transition-colors w-full"
         >
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
