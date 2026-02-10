@@ -85,8 +85,13 @@ export default function SwipeCard({
         transition: { duration: 0.3 },
       }}
     >
-      {/* Card Container */}
-      <div className="w-full h-full rounded-2xl overflow-hidden shadow-xl bg-gray-100 relative">
+      {/* Card Container — double-click to open fullscreen (alternative to button) */}
+      <div
+        className="w-full h-full rounded-2xl overflow-hidden shadow-xl bg-gray-100 relative"
+        onDoubleClick={isTop ? (e) => { e.preventDefault(); e.stopPropagation(); onExpandClick(); } : undefined}
+        role={isTop ? 'button' : undefined}
+        aria-label={isTop ? 'Double-click to view full details' : undefined}
+      >
         {/* Product Image */}
         <Image
           src={imageUrl}

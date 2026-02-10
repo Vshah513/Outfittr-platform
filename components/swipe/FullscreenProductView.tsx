@@ -265,14 +265,14 @@ export default function FullscreenProductView({
             </div>
           </div>
 
-          {/* Bottom Action Bar (fixed) */}
-          <div className="flex-shrink-0 border-t border-[var(--divider)] bg-[var(--surface)] px-4 py-3 flex flex-wrap gap-2 sm:gap-3">
+          {/* Bottom Action Bar (fixed) — compact on mobile for fullscreen */}
+          <div className="flex-shrink-0 border-t border-[var(--divider)] bg-[var(--surface)] px-3 py-2 sm:px-4 sm:py-3 flex flex-wrap gap-1.5 sm:gap-3">
             {/* Skip Button */}
             <button
               onClick={onSkip}
-              className="flex-1 min-w-0 flex items-center justify-center gap-2 py-3 rounded-xl border-2 border-[var(--border)] text-[var(--text-2)] font-semibold hover:bg-[var(--surface-2)] transition-colors"
+              className="flex-1 min-w-0 flex items-center justify-center gap-1.5 sm:gap-2 py-2 sm:py-3 rounded-lg sm:rounded-xl border-2 border-[var(--border)] text-[var(--text-2)] text-sm sm:text-base font-semibold hover:bg-[var(--surface-2)] transition-colors"
             >
-              <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+              <svg className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
               </svg>
               Skip
@@ -281,9 +281,9 @@ export default function FullscreenProductView({
             {/* Save Button */}
             <button
               onClick={onSave}
-              className="flex-1 min-w-0 flex items-center justify-center gap-2 py-3 rounded-xl bg-emerald-600 text-white font-semibold hover:bg-emerald-700 transition-colors"
+              className="flex-1 min-w-0 flex items-center justify-center gap-1.5 sm:gap-2 py-2 sm:py-3 rounded-lg sm:rounded-xl bg-emerald-600 text-white text-sm sm:text-base font-semibold hover:bg-emerald-700 transition-colors"
             >
-              <svg className="w-5 h-5 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24">
+              <svg className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
               </svg>
               Save
@@ -293,9 +293,9 @@ export default function FullscreenProductView({
             {onBuyNow ? (
               <button
                 onClick={onBuyNow}
-                className="flex-1 min-w-0 flex items-center justify-center gap-2 py-3 rounded-xl bg-[var(--text)] text-[var(--bg)] font-semibold hover:opacity-90 transition-colors"
+                className="flex-1 min-w-0 flex items-center justify-center gap-1.5 sm:gap-2 py-2 sm:py-3 rounded-lg sm:rounded-xl bg-[var(--text)] text-[var(--bg)] text-sm sm:text-base font-semibold hover:opacity-90 transition-colors"
               >
-                <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                <svg className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
                 </svg>
                 Buy now
@@ -303,9 +303,9 @@ export default function FullscreenProductView({
             ) : (
               <Link
                 href={`/product/${product.id}`}
-                className="flex-1 min-w-0 flex items-center justify-center gap-2 py-3 rounded-xl bg-[var(--text)] text-[var(--bg)] font-semibold hover:opacity-90 transition-colors"
+                className="flex-1 min-w-0 flex items-center justify-center gap-1.5 sm:gap-2 py-2 sm:py-3 rounded-lg sm:rounded-xl bg-[var(--text)] text-[var(--bg)] text-sm sm:text-base font-semibold hover:opacity-90 transition-colors"
               >
-                <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                <svg className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
                 </svg>
                 Buy now
@@ -316,7 +316,7 @@ export default function FullscreenProductView({
             <button
               onClick={handleAddToCart}
               disabled={addedToCart || isInBundle(product.id) || !canAddToBundle(product)}
-              className={`flex-1 min-w-0 flex items-center justify-center gap-2 py-3 rounded-xl font-semibold transition-colors ${
+              className={`flex-1 min-w-0 flex items-center justify-center gap-1.5 sm:gap-2 py-2 sm:py-3 rounded-lg sm:rounded-xl text-sm sm:text-base font-semibold transition-colors ${
                 addedToCart || isInBundle(product.id)
                   ? 'bg-[var(--surface-2)] text-[var(--text-3)] cursor-default'
                   : !canAddToBundle(product)
@@ -324,7 +324,7 @@ export default function FullscreenProductView({
                   : 'bg-[var(--text)] text-[var(--bg)] hover:opacity-90'
               }`}
             >
-              <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+              <svg className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
               </svg>
               {addedToCart || isInBundle(product.id) ? 'In Bundle' : 'Add to Cart'}

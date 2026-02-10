@@ -445,9 +445,13 @@ export default function SwipeDiscovery() {
       </div>
 
       {/* Card Stack Area — show listings as soon as we have them; minimal loading */}
-      <div className="relative min-h-[500px] flex items-center justify-center">
+      <div className="relative min-h-[500px] flex flex-col items-center justify-center">
         {currentProduct ? (
           <>
+            {/* Swipe hint — just above product listing (mobile + laptop) */}
+            <p className="text-center text-xs text-gray-500 mb-2 px-4 w-full">
+              Swipe right to add to saved items and swipe left to skip
+            </p>
             <SwipeCardStack
               products={products}
               currentIndex={currentIndex}
