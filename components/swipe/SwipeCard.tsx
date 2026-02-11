@@ -1,12 +1,17 @@
 'use client';
 
-import { motion, useMotionValue, useTransform, PanInfo } from 'framer-motion';
+import { useState, useEffect, useRef } from 'react';
+import { motion, useMotionValue, useTransform, PanInfo, animate } from 'framer-motion';
 import Image from 'next/image';
 import { Product } from '@/types';
 import { formatPrice } from '@/lib/utils';
 
 const SWIPE_THRESHOLD = 100; // px distance
 const VELOCITY_THRESHOLD = 500; // px/s
+const DEMO_HALF_SWIPE_PX = 80; // px for half-swipe hint (shows overlay without committing)
+const DEMO_DURATION_MS = 1100; // ms each way for demo (slower so it's easy to follow)
+const DEMO_REPEAT_COUNT = 3; // number of left-then-right cycles before stopping
+const DEMO_EASE = [0.25, 0.1, 0.25, 1] as const; // easeInOut-like
 
 interface SwipeCardProps {
   product: Product;
@@ -14,6 +19,8 @@ interface SwipeCardProps {
   onExpandClick: () => void;
   isTop: boolean;
   stackIndex: number;
+  runGestureDemo?: boolean;
+  onGestureDemoComplete?: () => void;
 }
 
 export default function SwipeCard({
@@ -22,8 +29,12 @@ export default function SwipeCard({
   onExpandClick,
   isTop,
   stackIndex,
+  runGestureDemo,
+  onGestureDemoComplete,
 }: SwipeCardProps) {
   const x = useMotionValue(0);
+  const [isDemoRunning, setDemoRunning] = useState(false);
+  const demoHasRunRef = useRef(false);
 
   // Rotation based on drag offset (max ~12deg)
   const rotate = useTransform(x, [-300, 0, 300], [-12, 0, 12]);
@@ -37,6 +48,36 @@ export default function SwipeCard({
   // Scale for stacked cards behind the top card
   const scale = isTop ? 1 : 1 - stackIndex * 0.05;
   const yOffset = isTop ? 0 : stackIndex * 8;
+
+  // One-time gesture demo: half-swipe left then right when section is in view
+  useEffect(() => {
+    if (!isTop || !runGestureDemo || demoHasRunRef.current) return;
+    demoHasRunRef.current = true;
+    setDemoRunning(true);
+
+    const oneCycle = async () => {
+      await animate(x, -DEMO_HALF_SWIPE_PX, { duration: DEMO_DURATION_MS / 1000, ease: DEMO_EASE });
+      await animate(x, 0, { duration: (DEMO_DURATION_MS / 1000) * 0.6, ease: DEMO_EASE });
+      await animate(x, DEMO_HALF_SWIPE_PX, { duration: DEMO_DURATION_MS / 1000, ease: DEMO_EASE });
+      await animate(x, 0, { duration: (DEMO_DURATION_MS / 1000) * 0.6, ease: DEMO_EASE });
+    };
+
+    const run = async () => {
+      for (let i = 0; i < DEMO_REPEAT_COUNT; i++) {
+        await oneCycle();
+      }
+    };
+
+    run()
+      .then(() => {
+        setDemoRunning(false);
+        onGestureDemoComplete?.();
+      })
+      .catch(() => {
+        setDemoRunning(false);
+        onGestureDemoComplete?.();
+      });
+  }, [isTop, runGestureDemo, x, onGestureDemoComplete]);
 
   const handleDragEnd = (_: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
     const { offset, velocity } = info;
@@ -72,7 +113,7 @@ export default function SwipeCard({
         y: yOffset,
         zIndex: 10 - stackIndex,
       }}
-      drag={isTop ? 'x' : false}
+      drag={isTop && !isDemoRunning ? 'x' : false}
       dragConstraints={{ left: 0, right: 0 }}
       dragElastic={0.9}
       dragSnapToOrigin

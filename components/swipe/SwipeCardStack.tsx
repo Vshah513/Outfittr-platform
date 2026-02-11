@@ -11,6 +11,8 @@ interface SwipeCardStackProps {
   currentIndex: number;
   onSwipe: (direction: 'left' | 'right', product: Product) => void;
   onExpandClick: (product: Product) => void;
+  runGestureDemo?: boolean;
+  onGestureDemoComplete?: () => void;
 }
 
 export default function SwipeCardStack({
@@ -18,6 +20,8 @@ export default function SwipeCardStack({
   currentIndex,
   onSwipe,
   onExpandClick,
+  runGestureDemo,
+  onGestureDemoComplete,
 }: SwipeCardStackProps) {
   // Get the visible cards (current + up to 2 behind)
   const visibleCards = products
@@ -38,6 +42,8 @@ export default function SwipeCardStack({
               isTop={stackIndex === 0}
               onSwipe={(direction) => onSwipe(direction, product)}
               onExpandClick={() => onExpandClick(product)}
+              runGestureDemo={stackIndex === 0 ? runGestureDemo : undefined}
+              onGestureDemoComplete={stackIndex === 0 ? onGestureDemoComplete : undefined}
             />
           ))}
       </AnimatePresence>

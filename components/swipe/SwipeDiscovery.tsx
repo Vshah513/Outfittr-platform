@@ -26,6 +26,7 @@ interface Filters {
 // ---- Storage Helpers ----
 
 const SEEN_IDS_KEY = 'outfittr_swipe_seen_ids';
+const GESTURE_DEMO_KEY = 'outfittr_swipe_gesture_demo_shown';
 
 function loadSeenIds(): Set<string> {
   try {
@@ -94,6 +95,10 @@ export default function SwipeDiscovery() {
   // Fullscreen modal
   const [fullscreenProduct, setFullscreenProduct] = useState<Product | null>(null);
 
+  // Gesture demo: show half-swipe hint once per session when section is in view
+  const sectionRef = useRef<HTMLDivElement>(null);
+  const [runGestureDemo, setRunGestureDemo] = useState(false);
+
   // ---- Data Fetching ----
 
   const fetchProducts = useCallback(
@@ -154,6 +159,30 @@ export default function SwipeDiscovery() {
     },
     [filters, seenIds]
   );
+
+  // Track when swipe section is in view
+  const [sectionInView, setSectionInView] = useState(false);
+  useEffect(() => {
+    const el = sectionRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      (entries) => setSectionInView(!!entries[0]?.isIntersecting),
+      { threshold: 0.4, rootMargin: '0px' }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
+  // When section is in view and we have a card, trigger gesture demo once per session
+  useEffect(() => {
+    if (!sectionInView || products.length === 0 || runGestureDemo) return;
+    try {
+      if (sessionStorage.getItem(GESTURE_DEMO_KEY) === '1') return;
+    } catch {
+      return;
+    }
+    setRunGestureDemo(true);
+  }, [sectionInView, products.length, runGestureDemo]);
 
   // Initial fetch — clear loading quickly so we show listings or empty state
   useEffect(() => {
@@ -445,11 +474,14 @@ export default function SwipeDiscovery() {
       </div>
 
       {/* Card Stack Area — show listings as soon as we have them; minimal loading */}
-      <div className="relative min-h-[500px] flex flex-col items-center justify-center">
+      <div
+        ref={sectionRef}
+        className="relative min-h-[500px] flex flex-col items-center justify-center"
+      >
         {currentProduct ? (
           <>
             {/* Swipe hint — just above product listing (mobile + laptop) */}
-            <p className="text-center text-xs text-gray-500 mb-2 px-4 w-full">
+            <p className="text-center text-sm sm:text-base text-gray-600 font-medium mb-2 px-4 w-full">
               Swipe right to add to saved items and swipe left to skip
             </p>
             <SwipeCardStack
@@ -457,6 +489,15 @@ export default function SwipeDiscovery() {
               currentIndex={currentIndex}
               onSwipe={handleSwipe}
               onExpandClick={handleExpandClick}
+              runGestureDemo={runGestureDemo}
+              onGestureDemoComplete={() => {
+                try {
+                  sessionStorage.setItem(GESTURE_DEMO_KEY, '1');
+                } catch {
+                  // ignore
+                }
+                setRunGestureDemo(false);
+              }}
             />
 
             {/* Skip / Save / Buy now action buttons (below card) */}
