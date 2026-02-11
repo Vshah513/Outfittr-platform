@@ -23,6 +23,7 @@ export default function ScrollHintCue({ menTileRef }: ScrollHintCueProps) {
   const [removed, setRemoved] = useState(false);
   const [reducedMotion, setReducedMotion] = useState(false);
   const idleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
 
   const updatePosition = useCallback(() => {
     if (typeof window === 'undefined') return;
@@ -35,7 +36,7 @@ export default function ScrollHintCue({ menTileRef }: ScrollHintCueProps) {
       setStyle({
         position: 'static',
         width: '100%',
-        marginTop: 20,
+        marginTop: 8,
         marginBottom: 0,
         marginLeft: 'auto',
         marginRight: 'auto',
@@ -114,6 +115,32 @@ export default function ScrollHintCue({ menTileRef }: ScrollHintCueProps) {
     };
   }, [mounted, removed]);
 
+  // Mobile: force video play so iOS/Safari doesn’t show lock (muted + playsInline + programmatic play)
+  useEffect(() => {
+    if (!mounted || removed) return;
+    const isMobile = typeof window !== 'undefined' && window.innerWidth < MOBILE_BREAKPOINT;
+    if (!isMobile) return;
+
+    const video = videoRef.current;
+    if (!video) return;
+
+    const tryPlay = () => {
+      video.setAttribute('playsinline', 'true');
+      video.setAttribute('webkit-playsinline', 'true');
+      video.muted = true;
+      const p = video.play();
+      if (p !== undefined) p.catch(() => {});
+    };
+
+    tryPlay();
+    video.addEventListener('loadeddata', tryPlay);
+    video.addEventListener('canplay', tryPlay);
+    return () => {
+      video.removeEventListener('loadeddata', tryPlay);
+      video.removeEventListener('canplay', tryPlay);
+    };
+  }, [mounted, removed]);
+
   useEffect(() => {
     if (!mounted || removed) return;
 
@@ -164,11 +191,13 @@ export default function ScrollHintCue({ menTileRef }: ScrollHintCueProps) {
         style={{ width: 80, height: 80, flexShrink: 0 }}
       >
         <video
+          ref={videoRef}
           src="/collections/Scroll%20Down.mp4"
           autoPlay
           loop
           muted
           playsInline
+          preload="auto"
           className="w-full h-full object-contain"
           aria-hidden
         />
