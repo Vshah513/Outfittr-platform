@@ -8,6 +8,7 @@ import Footer from '@/components/layout/Footer';
 import { Button } from '@/components/ui/Button';
 import { useAuth } from '@/contexts/AuthContext';
 import SwipeDiscovery from '@/components/swipe/SwipeDiscovery';
+import ScrollHintPeek from '@/components/home/ScrollHintPeek';
 
 export default function HomePage() {
   const { user, openAuthModal } = useAuth();
@@ -28,8 +29,9 @@ export default function HomePage() {
       {/* Hero Section */}
       <section className="pt-8 pb-8 bg-[var(--bg)]">
         <div className="max-w-7xl mx-auto px-4">
-          {/* Shop by Gender - centered (larger tiles on mobile) */}
-          <div className="max-w-4xl mx-auto grid grid-cols-2 md:grid-cols-2 gap-3 md:gap-4 mb-12">
+          {/* Shop by Gender - centered (larger tiles on mobile); relative for scroll-hint peek */}
+          <div className="relative max-w-4xl mx-auto mb-12">
+            <div className="grid grid-cols-2 md:grid-cols-2 gap-3 md:gap-4">
             <Link
               href="/category/women"
               className="relative group overflow-hidden rounded-xl block w-full"
@@ -74,6 +76,8 @@ export default function HomePage() {
                 </div>
               </div>
             </Link>
+            </div>
+            <ScrollHintPeek />
           </div>
         </div>
       </section>

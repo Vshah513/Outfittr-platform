@@ -401,6 +401,23 @@
     0% { background-position: 200% 0; }
     100% { background-position: -200% 0; }
   }
+
+  /* Scroll hint peek – breathing motion */
+  @keyframes scroll-hint-breathe {
+    0%, 100% { transform: translateY(0) scale(1); }
+    50% { transform: translateY(4px) scale(1.03); }
+  }
+  @keyframes scroll-hint-shimmer-pass {
+    0% { opacity: 1; }
+    50% { opacity: 0.6; }
+    100% { opacity: 1; }
+  }
+  .scroll-hint-breathe {
+    animation: scroll-hint-breathe 3.2s ease-in-out infinite;
+  }
+  .scroll-hint-shimmer {
+    animation: scroll-hint-shimmer-pass 0.8s ease-in-out;
+  }
 }
 
 @layer utilities {
