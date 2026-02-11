@@ -146,6 +146,16 @@ export default function HomePage() {
                 Complete transactions safely with buyer protection
               </p>
             </div>
+
+            <div className="text-center">
+              <div className="w-16 h-16 rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-4 bg-[var(--text)] text-[var(--bg)]">
+                3
+              </div>
+              <h3 className="text-xl font-bold mb-2 text-[var(--text)]">Deliver & Get Paid</h3>
+              <p className="text-[var(--text-2)]">
+                Confirm delivery and get paid fast and secure.
+              </p>
+            </div>
           </div>
         </div>
       </section>
