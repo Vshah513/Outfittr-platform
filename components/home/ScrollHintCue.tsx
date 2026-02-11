@@ -25,21 +25,20 @@ export default function ScrollHintCue({ menTileRef }: ScrollHintCueProps) {
   const idleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const updatePosition = useCallback(() => {
-    if (typeof window === 'undefined' || !menTileRef?.current) return;
+    if (typeof window === 'undefined') return;
 
-    const menRect = menTileRef.current.getBoundingClientRect();
-    const vh = window.innerHeight;
     const vw = window.innerWidth;
     const mobile = vw < MOBILE_BREAKPOINT;
 
     if (mobile) {
-      // Bottom-center: safe area above nav/content
+      // In-flow: directly under the Women/Men tiles in the white section (no overlap)
       setStyle({
-        position: 'fixed',
-        left: '50%',
-        transform: 'translateX(-50%)',
-        bottom: 100,
-        zIndex: 10,
+        position: 'static',
+        width: '100%',
+        marginTop: 20,
+        marginBottom: 0,
+        marginLeft: 'auto',
+        marginRight: 'auto',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -48,6 +47,10 @@ export default function ScrollHintCue({ menTileRef }: ScrollHintCueProps) {
       });
       return;
     }
+
+    if (!menTileRef?.current) return;
+    const menRect = menTileRef.current.getBoundingClientRect();
+    const vh = window.innerHeight;
 
     // Desktop: to the right of Men tile, vertically aligned
     const cueHeight = 112; // video 80px + spacing
