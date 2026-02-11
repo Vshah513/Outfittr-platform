@@ -18,9 +18,9 @@ const nextConfig = {
   },
   experimental: {
     serverActions: {
-      allowedOrigins: process.env.NODE_ENV === 'production' 
+      allowedOrigins: process.env.NODE_ENV === 'production'
         ? [process.env.NEXT_PUBLIC_APP_URL || 'https://yourdomain.com'].filter(Boolean)
-        : ['localhost:3000'],
+        : ['localhost:3000', '127.0.0.1:3000'],
     },
   },
 }

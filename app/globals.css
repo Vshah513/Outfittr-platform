@@ -418,6 +418,26 @@
   .scroll-hint-shimmer {
     animation: scroll-hint-shimmer-pass 0.8s ease-in-out;
   }
+
+  /* Scroll hint cue – ambient UI (no bounce): breathing + gentle drift + subtle opacity */
+  @keyframes scroll-hint-cue-float {
+    0%, 100% { transform: translateY(0) scale(1); }
+    50% { transform: translateY(4px) scale(1.04); }
+  }
+  @keyframes scroll-hint-cue-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.85; }
+  }
+  .scroll-hint-cue-media.animated {
+    animation:
+      scroll-hint-cue-float 4s ease-in-out infinite,
+      scroll-hint-cue-pulse 3s ease-in-out infinite;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .scroll-hint-cue-media.animated {
+      animation: none;
+    }
+  }
 }
 
 @layer utilities {
