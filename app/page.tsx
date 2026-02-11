@@ -28,23 +28,6 @@ export default function HomePage() {
       {/* Hero Section */}
       <section className="pt-8 pb-8 bg-[var(--bg)]">
         <div className="max-w-7xl mx-auto px-4">
-          {/* Headline */}
-          <div className="text-center mb-10">
-            <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-[var(--text)] mb-2">
-              Nothing new. Everything worth wearing.
-            </h1>
-            <p className="text-lg md:text-xl lg:text-2xl text-[var(--text-2)]">
-              Secondhand and vintage. New finds daily.
-            </p>
-          </div>
-
-          {/* Browse by Category - centered */}
-          <div className="text-center mb-6">
-            <p className="text-xs md:text-sm text-[var(--text-3)] tracking-[0.25em] uppercase">
-              Browse by Category
-            </p>
-          </div>
-
           {/* Shop by Gender - centered (larger tiles on mobile) */}
           <div className="max-w-4xl mx-auto grid grid-cols-2 md:grid-cols-2 gap-3 md:gap-4 mb-12">
             <Link
@@ -92,17 +75,14 @@ export default function HomePage() {
               </div>
             </Link>
           </div>
-
-          {/* Swipe Discovery - below Women/Men */}
-          <SwipeDiscovery />
         </div>
       </section>
 
-      {/* Selling CTA Section */}
+      {/* Selling CTA - Thrift smarter. Sell faster. */}
       <section className="py-16 bg-[var(--surface)]">
         <div className="max-w-4xl mx-auto px-4 text-center">
           <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold mb-8 leading-tight text-[var(--text)]">
-            Shop for less. Sell with ease. Keep fashion circular.
+            Thrift smarter. Sell faster.
           </h2>
           <Button
             onClick={handleSellClick}
@@ -115,6 +95,13 @@ export default function HomePage() {
           <p className="text-sm text-[var(--text-2)] mt-4">
             *Payment processing fees may apply. <Link href="/help/fees" className="underline hover:text-[var(--text)] text-[var(--link)]">Learn more</Link>.
           </p>
+        </div>
+      </section>
+
+      {/* Swipe Discovery */}
+      <section className="pt-8 pb-8 bg-[var(--bg)]">
+        <div className="max-w-7xl mx-auto px-4">
+          <SwipeDiscovery />
         </div>
       </section>
 
