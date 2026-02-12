@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { signInWithGoogle, signInWithFacebook, signInWithEmail, registerWithEmail, sendPasswordResetEmail } from '@/lib/auth';
+import { signInWithGoogle, signInWithEmail, registerWithEmail, sendPasswordResetEmail } from '@/lib/auth';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
@@ -80,18 +80,6 @@ export default function AuthModal() {
     setError('');
     
     const { error } = await signInWithGoogle(returnUrl);
-    
-    if (error) {
-      setError(error);
-      setIsLoading(false);
-    }
-  };
-
-  const handleFacebookSignIn = async () => {
-    setIsLoading(true);
-    setError('');
-    
-    const { error } = await signInWithFacebook(returnUrl);
     
     if (error) {
       setError(error);
@@ -259,11 +247,12 @@ export default function AuthModal() {
 
           <div className="p-8 md:p-10">
             {/* Logo */}
-            <div className="flex items-center gap-2 mb-6">
-              <div className="bg-[var(--text)] text-[var(--bg)] w-10 h-10 rounded-full flex items-center justify-center font-bold text-xl">
-                T
-              </div>
-              <span className="font-bold text-xl text-[var(--text)]">Outfittr</span>
+            <div className="flex items-center mb-6">
+              <img
+                src="/collections/Black Logo.jpg"
+                alt="Outfittr"
+                className="h-16 md:h-20 w-auto object-contain"
+              />
             </div>
 
             {/* Welcome Message */}
@@ -396,7 +385,7 @@ export default function AuthModal() {
                   </div>
                 </div>
 
-                {/* Social Sign In Buttons */}
+                {/* Social Sign In - Google only (enable Facebook in Supabase to show Facebook button) */}
                 <div className="flex gap-3">
                   <button
                     type="button"
@@ -411,17 +400,6 @@ export default function AuthModal() {
                       <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
                     </svg>
                     <span className="font-medium text-sm">Google</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleFacebookSignIn}
-                    disabled={isLoading}
-                    className="flex-1 h-12 flex items-center justify-center gap-2 bg-[#1877F2] text-white rounded-lg hover:bg-[#166FE5] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
-                    </svg>
-                    <span className="font-medium text-sm">Facebook</span>
                   </button>
                 </div>
               </form>
@@ -506,7 +484,7 @@ export default function AuthModal() {
                   </div>
                 </div>
 
-                {/* Social Sign Up Buttons */}
+                {/* Social Sign Up - Google only (enable Facebook in Supabase to show Facebook button) */}
                 <div className="flex gap-3">
                   <button
                     type="button"
@@ -521,17 +499,6 @@ export default function AuthModal() {
                       <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
                     </svg>
                     <span className="font-medium text-sm">Google</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleFacebookSignIn}
-                    disabled={isLoading}
-                    className="flex-1 h-12 flex items-center justify-center gap-2 bg-[#1877F2] text-white rounded-lg hover:bg-[#166FE5] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
-                    </svg>
-                    <span className="font-medium text-sm">Facebook</span>
                   </button>
                 </div>
               </form>
