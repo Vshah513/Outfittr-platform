@@ -35,6 +35,8 @@ export default function SwipeCard({
   const x = useMotionValue(0);
   const [isDemoRunning, setDemoRunning] = useState(false);
   const demoHasRunRef = useRef(false);
+  const demoStopRef = useRef<{ stop: () => void } | null>(null);
+  const demoCancelledRef = useRef(false);
 
   // Rotation based on drag offset (max ~12deg)
   const rotate = useTransform(x, [-300, 0, 300], [-12, 0, 12]);
@@ -49,35 +51,64 @@ export default function SwipeCard({
   const scale = isTop ? 1 : 1 - stackIndex * 0.05;
   const yOffset = isTop ? 0 : stackIndex * 8;
 
-  // One-time gesture demo: half-swipe left then right when section is in view
+  // One-time gesture demo: half-swipe left then right when section is in view.
+  // User can interrupt at any time by swiping; we stop the demo and allow drag to take over.
   useEffect(() => {
     if (!isTop || !runGestureDemo || demoHasRunRef.current) return;
     demoHasRunRef.current = true;
+    demoCancelledRef.current = false;
     setDemoRunning(true);
 
     const oneCycle = async () => {
-      await animate(x, -DEMO_HALF_SWIPE_PX, { duration: DEMO_DURATION_MS / 1000, ease: DEMO_EASE });
-      await animate(x, 0, { duration: (DEMO_DURATION_MS / 1000) * 0.6, ease: DEMO_EASE });
-      await animate(x, DEMO_HALF_SWIPE_PX, { duration: DEMO_DURATION_MS / 1000, ease: DEMO_EASE });
-      await animate(x, 0, { duration: (DEMO_DURATION_MS / 1000) * 0.6, ease: DEMO_EASE });
+      if (demoCancelledRef.current) return;
+      const a1 = animate(x, -DEMO_HALF_SWIPE_PX, { duration: DEMO_DURATION_MS / 1000, ease: DEMO_EASE });
+      demoStopRef.current = a1;
+      await a1;
+      if (demoCancelledRef.current) return;
+      const a2 = animate(x, 0, { duration: (DEMO_DURATION_MS / 1000) * 0.6, ease: DEMO_EASE });
+      demoStopRef.current = a2;
+      await a2;
+      if (demoCancelledRef.current) return;
+      const a3 = animate(x, DEMO_HALF_SWIPE_PX, { duration: DEMO_DURATION_MS / 1000, ease: DEMO_EASE });
+      demoStopRef.current = a3;
+      await a3;
+      if (demoCancelledRef.current) return;
+      const a4 = animate(x, 0, { duration: (DEMO_DURATION_MS / 1000) * 0.6, ease: DEMO_EASE });
+      demoStopRef.current = a4;
+      await a4;
+      demoStopRef.current = null;
     };
 
     const run = async () => {
       for (let i = 0; i < DEMO_REPEAT_COUNT; i++) {
+        if (demoCancelledRef.current) break;
         await oneCycle();
       }
     };
 
     run()
       .then(() => {
-        setDemoRunning(false);
-        onGestureDemoComplete?.();
+        if (!demoCancelledRef.current) {
+          setDemoRunning(false);
+          onGestureDemoComplete?.();
+        }
+        demoStopRef.current = null;
       })
       .catch(() => {
         setDemoRunning(false);
         onGestureDemoComplete?.();
+        demoStopRef.current = null;
       });
   }, [isTop, runGestureDemo, x, onGestureDemoComplete]);
+
+  const handleDragStart = () => {
+    if (isDemoRunning) {
+      demoCancelledRef.current = true;
+      demoStopRef.current?.stop();
+      setDemoRunning(false);
+      onGestureDemoComplete?.();
+    }
+  };
 
   const handleDragEnd = (_: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
     const { offset, velocity } = info;
@@ -113,10 +144,11 @@ export default function SwipeCard({
         y: yOffset,
         zIndex: 10 - stackIndex,
       }}
-      drag={isTop && !isDemoRunning ? 'x' : false}
+      drag={isTop ? 'x' : false}
       dragConstraints={{ left: 0, right: 0 }}
       dragElastic={0.9}
       dragSnapToOrigin
+      onDragStart={isTop ? handleDragStart : undefined}
       onDragEnd={isTop ? handleDragEnd : undefined}
       // Exit animation
       exit={{

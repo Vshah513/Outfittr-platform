@@ -500,8 +500,8 @@ export default function SwipeDiscovery() {
               }}
             />
 
-            {/* Skip / Save / Buy now action buttons (below card) */}
-            <div className="absolute -bottom-10 left-0 right-0 flex justify-center items-center gap-6 sm:gap-8 text-xs font-medium flex-wrap">
+            {/* Skip / Save / Buy now action buttons (below card, clearly below the card with space before next section) */}
+            <div className="absolute -bottom-10 left-0 right-0 z-10 flex justify-center items-center gap-6 sm:gap-8 text-xs font-medium flex-wrap">
               <button
                 type="button"
                 onClick={() => handleSwipe('left', currentProduct)}

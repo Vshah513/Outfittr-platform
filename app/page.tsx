@@ -107,7 +107,7 @@ export default function HomePage() {
       </section>
 
       {/* Swipe Discovery */}
-      <section className="pt-8 pb-8 bg-[var(--bg)]">
+      <section className="pt-8 pb-20 bg-[var(--bg)]">
         <div className="max-w-7xl mx-auto px-4">
           <SwipeDiscovery />
         </div>
