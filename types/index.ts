@@ -196,6 +196,8 @@ export interface SellerProfile extends User {
   listings_count: number;
   sold_count: number;
   is_following?: boolean;
+  reviews_count?: number;
+  reviews?: Review[];
 }
 
 // Bundle system types
@@ -456,6 +458,23 @@ export interface Order {
   product?: Product;
   buyer?: User;
   seller?: User;
+  // Review status (from GET /api/orders)
+  review_id?: string | null;
+  can_review?: boolean;
+}
+
+export interface Review {
+  id: string;
+  seller_id: string;
+  buyer_id: string;
+  product_id?: string | null;
+  order_id?: string | null;
+  rating: number;
+  comment?: string | null;
+  created_at: string;
+  // Populated via joins
+  reviewer?: { id: string; full_name: string; avatar_url?: string };
+  product?: { id: string; title: string };
 }
 
 export interface SellerPayoutInfo {

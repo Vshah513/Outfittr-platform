@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
+import { useTheme } from '@/contexts/ThemeContext';
 import { signOut } from '@/lib/auth';
 import ProfileDropdown from './ProfileDropdown';
 import SellerLeaderboardModal from '@/components/leaderboard/SellerLeaderboardModal';
@@ -13,6 +14,7 @@ export default function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
   const { user, openAuthModal } = useAuth();
+  const { theme } = useTheme();
   const [searchQuery, setSearchQuery] = useState('');
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
@@ -213,7 +215,7 @@ export default function Navbar() {
           {/* Logo */}
           <Link href="/" className="flex items-center flex-shrink-0 pr-12">
             <img
-              src="/collections/Black Logo.jpg"
+              src={theme === 'dark' ? '/collections/Outfittr Logo.png' : '/collections/Black Logo.jpg'}
               alt="Outfittr"
               className="h-20 w-auto object-contain"
               style={{ display: 'block' }}

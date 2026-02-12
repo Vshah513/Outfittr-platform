@@ -93,6 +93,12 @@ export async function GET(
       .select('id', { count: 'exact', head: true })
       .eq('seller_id', id);
 
+    // Get reviews count (for rating display)
+    const { count: reviewsCount } = await supabase
+      .from('reviews')
+      .select('id', { count: 'exact', head: true })
+      .eq('seller_id', id);
+
     // Get real-time total views from product_views table for active products
     // First get all active product IDs for this seller
     const { data: activeProductIds } = await supabase
@@ -118,6 +124,7 @@ export async function GET(
         listings_count: activeCount || 0,
         sold_count: soldCount || 0,
         follower_count: followerCount || 0,
+        reviews_count: reviewsCount || 0,
         total_views: totalViews || 0,
         is_following: isFollowing,
         listings: listings || [],

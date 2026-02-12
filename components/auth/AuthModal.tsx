@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useTheme } from '@/contexts/ThemeContext';
 import { signInWithGoogle, signInWithEmail, registerWithEmail, sendPasswordResetEmail } from '@/lib/auth';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -11,6 +12,7 @@ type Step = 'initial' | 'forgot-password' | 'reset-sent' | 'success' | 'new-pass
 
 export default function AuthModal() {
   const { modalOpen, modalMode, modalInitialStep, closeAuthModal, returnUrl, refreshUser } = useAuth();
+  const { theme } = useTheme();
   const router = useRouter();
   
   // Tab state
@@ -249,7 +251,7 @@ export default function AuthModal() {
             {/* Logo */}
             <div className="flex items-center mb-6">
               <img
-                src="/collections/Black Logo.jpg"
+                src={theme === 'dark' ? '/collections/Outfittr Logo.png' : '/collections/Black Logo.jpg'}
                 alt="Outfittr"
                 className="h-16 md:h-20 w-auto object-contain"
               />

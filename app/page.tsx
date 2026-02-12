@@ -177,14 +177,15 @@ export default function HomePage() {
             Start buying or selling unique fashion items today
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button
-              onClick={() => openAuthModal(undefined, undefined, 'signup')}
-              variant="primary"
-              size="lg"
-              className="w-full sm:w-auto bg-[var(--bg)] text-[var(--text)] hover:opacity-90"
-            >
-              Get Started
-            </Button>
+            <Link href="/dashboard">
+              <Button
+                variant="primary"
+                size="lg"
+                className="w-full sm:w-auto bg-[var(--bg)] text-[var(--text)] hover:opacity-90"
+              >
+                Get Started
+              </Button>
+            </Link>
             <Link href="/marketplace">
               <Button variant="outline" size="lg" className="w-full sm:w-auto border-[var(--bg)] text-[var(--bg)] hover:bg-[var(--bg)] hover:text-[var(--text)]">
                 Browse Items

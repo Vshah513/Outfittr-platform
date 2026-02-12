@@ -1,7 +1,11 @@
+'use client';
+
 import React from 'react';
 import Link from 'next/link';
+import { useTheme } from '@/contexts/ThemeContext';
 
 export default function Footer() {
+  const { theme } = useTheme();
   const footerLinks = {
     'About': [
       { name: 'About Us', href: '/about' },
@@ -28,7 +32,7 @@ export default function Footer() {
           <div>
             <Link href="/" className="flex items-center mb-4">
               <img
-                src="/collections/Black Logo.jpg"
+                src={theme === 'dark' ? '/collections/Outfittr Logo.png' : '/collections/Black Logo.jpg'}
                 alt="Outfittr"
                 className="h-12 w-auto object-contain"
                 style={{ display: 'block' }}

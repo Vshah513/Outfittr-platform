@@ -58,7 +58,44 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Failed to fetch orders' }, { status: 500 });
     }
 
-    return NextResponse.json({ orders: orders || [] });
+    const orderList = orders || [];
+
+    // Attach review_id and can_review for each order (for buyers, completed orders only)
+    if (orderList.length > 0 && role === 'buyer') {
+      const completedOrderIds = orderList
+        .filter((o: { status: string }) => o.status === 'completed')
+        .map((o: { id: string }) => o.id);
+
+      if (completedOrderIds.length > 0) {
+        const { data: reviewRows } = await supabase
+          .from('reviews')
+          .select('id, order_id')
+          .in('order_id', completedOrderIds);
+
+        const reviewByOrderId = new Map<string, string>();
+        (reviewRows || []).forEach((r: { id: string; order_id: string | null }) => {
+          if (r.order_id) reviewByOrderId.set(r.order_id, r.id);
+        });
+
+        orderList.forEach((o: { id: string; status: string; review_id?: string | null; can_review?: boolean }) => {
+          const reviewId = reviewByOrderId.get(o.id) ?? null;
+          o.review_id = reviewId;
+          o.can_review = o.status === 'completed' && !reviewId;
+        });
+      } else {
+        orderList.forEach((o: { status: string; review_id?: null; can_review?: boolean }) => {
+          o.review_id = null;
+          o.can_review = o.status === 'completed';
+        });
+      }
+    } else {
+      orderList.forEach((o: { review_id?: null; can_review?: boolean }) => {
+        o.review_id = null;
+        o.can_review = false;
+      });
+    }
+
+    return NextResponse.json({ orders: orderList });
   } catch (error) {
     console.error('Orders fetch error:', error);
     return NextResponse.json(

@@ -8,15 +8,19 @@ import Footer from '@/components/layout/Footer';
 import ProductGrid from '@/components/products/ProductGrid';
 import TrustBadges from '@/components/ui/TrustBadges';
 import FollowButton from '@/components/ui/FollowButton';
-import { SellerProfile, Product } from '@/types';
+import { SellerProfile, Product, Review } from '@/types';
 import { formatDate } from '@/lib/utils';
 
-type ProfileTab = 'active' | 'sold' | 'about';
+type ProfileTab = 'active' | 'sold' | 'about' | 'reviews';
 
 export default function SellerProfilePage() {
   const params = useParams();
   const [seller, setSeller] = useState<SellerProfile | null>(null);
   const [listings, setListings] = useState<Product[]>([]);
+  const [reviews, setReviews] = useState<Review[]>([]);
+  const [reviewsAvg, setReviewsAvg] = useState(0);
+  const [reviewsTotal, setReviewsTotal] = useState(0);
+  const [reviewsLoading, setReviewsLoading] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<ProfileTab>('active');
   const [followerCount, setFollowerCount] = useState(0);
@@ -28,10 +32,25 @@ export default function SellerProfilePage() {
     }
   }, [params.id, activeTab]);
 
+  useEffect(() => {
+    if (params.id && activeTab === 'reviews') {
+      setReviewsLoading(true);
+      fetch(`/api/reviews?seller_id=${params.id}&limit=50`)
+        .then((res) => res.json())
+        .then((data) => {
+          setReviews(data.data || []);
+          setReviewsAvg(data.average_rating ?? 0);
+          setReviewsTotal(data.total ?? 0);
+        })
+        .catch(() => {})
+        .finally(() => setReviewsLoading(false));
+    }
+  }, [params.id, activeTab]);
+
   const fetchSeller = async () => {
     setIsLoading(true);
     try {
-      const tabParam = activeTab === 'about' ? 'active' : activeTab;
+      const tabParam = (activeTab === 'about' || activeTab === 'reviews') ? 'active' : activeTab;
       const response = await fetch(`/api/sellers/${params.id}?tab=${tabParam}`);
       const data = await response.json();
 
@@ -141,7 +160,7 @@ export default function SellerProfilePage() {
               )}
 
               {/* Stats Row */}
-              <div className="flex items-center justify-center md:justify-start gap-6 mb-4">
+              <div className="flex items-center justify-center md:justify-start gap-6 mb-4 flex-wrap">
                 <div className="text-center">
                   <span className="block text-xl font-bold text-gray-900">
                     {seller.listings_count}
@@ -154,6 +173,19 @@ export default function SellerProfilePage() {
                   </span>
                   <span className="text-xs text-gray-500">Sold</span>
                 </div>
+                {(Number(seller.rating) > 0 || (seller.reviews_count ?? 0) > 0) ? (
+                  <div className="text-center">
+                    <span className="block text-xl font-bold text-gray-900 flex items-center justify-center gap-1">
+                      <span>{(Number(seller.rating) || 0).toFixed(1)}</span>
+                      <svg className="w-5 h-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                      </svg>
+                    </span>
+                    <span className="text-xs text-gray-500">
+                      ({(seller.reviews_count ?? 0)} reviews)
+                    </span>
+                  </div>
+                ) : null}
                 <div className="text-center">
                   <span className="block text-xl font-bold text-gray-900">
                     {seller.trust_metrics?.vouch_count || 0}
@@ -180,15 +212,15 @@ export default function SellerProfilePage() {
       {/* Tab Navigation */}
       <div className="bg-white border-b sticky top-16 z-20">
         <div className="max-w-4xl mx-auto px-4">
-          <nav className="flex gap-1 py-2" role="tablist">
-            {(['active', 'sold', 'about'] as ProfileTab[]).map((tab) => (
+          <nav className="flex gap-1 py-2 overflow-x-auto" role="tablist">
+            {(['active', 'sold', 'reviews', 'about'] as ProfileTab[]).map((tab) => (
               <button
                 key={tab}
                 role="tab"
                 aria-selected={activeTab === tab}
                 onClick={() => setActiveTab(tab)}
                 className={`
-                  px-5 py-2 rounded-full text-sm font-medium transition-all
+                  px-5 py-2 rounded-full text-sm font-medium transition-all whitespace-nowrap
                   ${activeTab === tab 
                     ? 'bg-black text-white' 
                     : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
@@ -197,6 +229,7 @@ export default function SellerProfilePage() {
               >
                 {tab === 'active' && `Active (${seller.listings_count})`}
                 {tab === 'sold' && `Sold (${seller.sold_count})`}
+                {tab === 'reviews' && `Reviews (${seller.reviews_count ?? 0})`}
                 {tab === 'about' && 'About'}
               </button>
             ))}
@@ -231,6 +264,85 @@ export default function SellerProfilePage() {
                   <h2 className="text-lg font-semibold mb-3">Trust & Verification</h2>
                   <TrustBadges metrics={seller.trust_metrics} variant="full" />
                 </div>
+              )}
+            </div>
+          ) : activeTab === 'reviews' ? (
+            <div className="bg-white rounded-xl p-6 shadow-sm">
+              <h2 className="text-lg font-semibold mb-4">Reviews</h2>
+              {reviewsLoading ? (
+                <div className="flex justify-center py-12">
+                  <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-gray-900" />
+                </div>
+              ) : reviews.length === 0 ? (
+                <p className="text-gray-500 py-8 text-center">No reviews yet.</p>
+              ) : (
+                <>
+                  <div className="flex items-center gap-3 mb-6 pb-4 border-b border-gray-100">
+                    <span className="text-3xl font-bold text-gray-900">{reviewsAvg.toFixed(1)}</span>
+                    <div className="flex items-center gap-1">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <svg
+                          key={star}
+                          className={`w-5 h-5 ${star <= Math.round(reviewsAvg) ? 'text-yellow-400' : 'text-gray-200'}`}
+                          fill="currentColor"
+                          viewBox="0 0 20 20"
+                        >
+                          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                        </svg>
+                      ))}
+                    </div>
+                    <span className="text-sm text-gray-500">Based on {reviewsTotal} review{reviewsTotal !== 1 ? 's' : ''}</span>
+                  </div>
+                  <ul className="space-y-4">
+                    {reviews.map((review) => (
+                      <li key={review.id} className="border-b border-gray-100 pb-4 last:border-0 last:pb-0">
+                        <div className="flex items-start gap-3">
+                          <div className="w-10 h-10 rounded-full bg-gray-200 flex-shrink-0 flex items-center justify-center overflow-hidden">
+                            {review.reviewer?.avatar_url ? (
+                              <img
+                                src={review.reviewer.avatar_url}
+                                alt=""
+                                className="w-full h-full object-cover"
+                              />
+                            ) : (
+                              <span className="text-sm font-medium text-gray-500">
+                                {(review.reviewer?.full_name ?? '?').charAt(0).toUpperCase()}
+                              </span>
+                            )}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <span className="font-medium text-gray-900">
+                                {review.reviewer?.full_name ?? 'Buyer'}
+                              </span>
+                              <span className="text-sm text-gray-500">{formatDate(review.created_at)}</span>
+                            </div>
+                            <div className="flex gap-0.5 mt-1">
+                              {[1, 2, 3, 4, 5].map((star) => (
+                                <svg
+                                  key={star}
+                                  className={`w-4 h-4 ${star <= review.rating ? 'text-yellow-400' : 'text-gray-200'}`}
+                                  fill="currentColor"
+                                  viewBox="0 0 20 20"
+                                >
+                                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                                </svg>
+                              ))}
+                            </div>
+                            {review.product?.title && (
+                              <p className="text-xs text-gray-500 mt-0.5">
+                                Product: {review.product.title}
+                              </p>
+                            )}
+                            {review.comment && (
+                              <p className="text-gray-700 mt-2 text-sm">{review.comment}</p>
+                            )}
+                          </div>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                </>
               )}
             </div>
           ) : (
