@@ -189,6 +189,15 @@ export default function DashboardPage() {
       <div className="max-w-7xl mx-auto px-4 py-8">
         <div className="flex flex-col gap-4 mb-8 md:flex-row md:justify-between md:items-center md:gap-0">
           <div>
+            <Link
+              href="/"
+              className="inline-flex items-center gap-2 text-sm text-[var(--text-2)] hover:text-[var(--text)] mb-3 transition-colors"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+              </svg>
+              Back to home
+            </Link>
             <h1 className="text-2xl font-bold md:text-3xl text-[var(--text)]">Seller Dashboard</h1>
             <p className="text-[var(--text-2)] mt-1 md:mt-2 text-sm md:text-base">Manage your listings and sales</p>
           </div>

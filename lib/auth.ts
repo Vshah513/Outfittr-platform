@@ -92,13 +92,20 @@ export async function getAuthenticatedUser(request: NextRequest) {
   return { user, error: null };
 }
 
+// Base URL for auth redirects (app URL; must be set so Google redirects to your app, not Supabase)
+function getAuthRedirectBase(): string {
+  if (typeof window !== 'undefined') return window.location.origin;
+  return process.env.NEXT_PUBLIC_APP_URL || process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+}
+
 // Client-side auth actions
 export async function signInWithGoogle(returnUrl?: string) {
   const supabase = createSupabaseClient();
   if (!supabase) return { error: 'Auth is not configured. Add Supabase env vars to .env.local' };
+  const base = getAuthRedirectBase();
   const redirectUrl = returnUrl 
-    ? `${process.env.NEXT_PUBLIC_SITE_URL}/api/auth/callback?returnUrl=${encodeURIComponent(returnUrl)}`
-    : `${process.env.NEXT_PUBLIC_SITE_URL}/api/auth/callback`;
+    ? `${base}/api/auth/callback?returnUrl=${encodeURIComponent(returnUrl)}`
+    : `${base}/api/auth/callback`;
   
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: 'google',
@@ -118,9 +125,10 @@ export async function signInWithGoogle(returnUrl?: string) {
 export async function signInWithFacebook(returnUrl?: string) {
   const supabase = createSupabaseClient();
   if (!supabase) return { error: 'Auth is not configured. Add Supabase env vars to .env.local' };
+  const base = getAuthRedirectBase();
   const redirectUrl = returnUrl 
-    ? `${process.env.NEXT_PUBLIC_SITE_URL}/api/auth/callback?returnUrl=${encodeURIComponent(returnUrl)}`
-    : `${process.env.NEXT_PUBLIC_SITE_URL}/api/auth/callback`;
+    ? `${base}/api/auth/callback?returnUrl=${encodeURIComponent(returnUrl)}`
+    : `${base}/api/auth/callback`;
   
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: 'facebook',
@@ -140,9 +148,10 @@ export async function signInWithFacebook(returnUrl?: string) {
 export async function signInWithMagicLink(email: string, returnUrl?: string) {
   const supabase = createSupabaseClient();
   if (!supabase) return { error: 'Auth is not configured. Add Supabase env vars to .env.local' };
+  const base = getAuthRedirectBase();
   const redirectUrl = returnUrl 
-    ? `${process.env.NEXT_PUBLIC_SITE_URL}/api/auth/callback?returnUrl=${encodeURIComponent(returnUrl)}`
-    : `${process.env.NEXT_PUBLIC_SITE_URL}/api/auth/callback`;
+    ? `${base}/api/auth/callback?returnUrl=${encodeURIComponent(returnUrl)}`
+    : `${base}/api/auth/callback`;
   
   const { error } = await supabase.auth.signInWithOtp({
     email,

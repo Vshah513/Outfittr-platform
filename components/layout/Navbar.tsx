@@ -205,7 +205,8 @@ export default function Navbar() {
   }, [showProfileMenu]);
 
   return (
-    <nav className="sticky top-0 left-0 right-0 z-[100] w-full flex-shrink-0 self-start border-b border-[var(--border)] bg-[var(--surface)]">
+    <>
+    <nav className="fixed top-0 left-0 right-0 z-[100] w-full border-b border-[var(--border)] bg-[var(--surface)]">
       {/* Top Bar */}
       <div className="max-w-7xl mx-auto px-4">
         <div className="flex items-center justify-between h-24">
@@ -517,5 +518,8 @@ export default function Navbar() {
         onClose={() => setShowLeaderboardModal(false)}
       />
     </nav>
+    {/* Spacer so page content is not hidden under fixed navbar */}
+    <div className="h-[220px] md:h-[144px] flex-shrink-0" aria-hidden />
+    </>
   );
 }
