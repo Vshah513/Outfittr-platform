@@ -108,8 +108,15 @@ export async function GET(request: NextRequest) {
     if (filters.location) {
       query = query.ilike('meetup_location', `%${filters.location}%`);
     }
+    // Search: supports multiple keywords separated by | (OR logic) - matches title or description
     if (filters.searchQuery) {
-      query = query.or(`title.ilike.%${filters.searchQuery}%,description.ilike.%${filters.searchQuery}%`);
+      const terms = filters.searchQuery.split('|').map((t) => t.trim()).filter(Boolean);
+      if (terms.length > 0) {
+        const orParts = terms.flatMap(
+          (term) => [`title.ilike.%${term}%`, `description.ilike.%${term}%`]
+        );
+        query = query.or(orParts.join(','));
+      }
     }
     // New filters for enhanced marketplace
     if (filters.size) {

@@ -10,6 +10,9 @@ import { Button } from '@/components/ui/Button';
 import { useAuth } from '@/contexts/AuthContext';
 import SwipeDiscovery from '@/components/swipe/SwipeDiscovery';
 import ScrollHintCue from '@/components/home/ScrollHintCue';
+import SellInMinutes from '@/components/home/SellInMinutes';
+import BrowseByVibe from '@/components/home/BrowseByVibe';
+import HomeFAQ from '@/components/home/HomeFAQ';
 
 export default function HomePage() {
   const { user, openAuthModal } = useAuth();
@@ -86,25 +89,8 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Selling CTA - Thrift smarter. Sell faster. */}
-      <section className="py-16 bg-[var(--surface)]">
-        <div className="max-w-4xl mx-auto px-4 text-center">
-          <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold mb-8 leading-tight text-[var(--text)]">
-            Thrift smarter. Sell faster.
-          </h2>
-          <Button
-            onClick={handleSellClick}
-            variant="primary"
-            size="lg"
-            className="px-12"
-          >
-            Sell now
-          </Button>
-          <p className="text-sm text-[var(--text-2)] mt-4">
-            *Payment processing fees may apply. <Link href="/help/fees" className="underline hover:text-[var(--text)] text-[var(--link)]">Learn more</Link>.
-          </p>
-        </div>
-      </section>
+      {/* Sell in Minutes */}
+      <SellInMinutes />
 
       {/* Swipe Discovery */}
       <section className="pt-8 pb-20 bg-[var(--bg)]">
@@ -154,6 +140,32 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+
+      {/* Selling CTA - Thrift smarter. Sell faster. */}
+      <section className="py-16 bg-[var(--surface)]">
+        <div className="max-w-4xl mx-auto px-4 text-center">
+          <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold mb-8 leading-tight text-[var(--text)]">
+            Thrift smarter. Sell faster.
+          </h2>
+          <Button
+            onClick={handleSellClick}
+            variant="primary"
+            size="lg"
+            className="px-12"
+          >
+            Sell now
+          </Button>
+          <p className="text-sm text-[var(--text-2)] mt-4">
+            *Payment processing fees may apply. <Link href="/help/fees" className="underline hover:text-[var(--text)] text-[var(--link)]">Learn more</Link>.
+          </p>
+        </div>
+      </section>
+
+      {/* Browse by Vibe */}
+      <BrowseByVibe />
+
+      {/* FAQ */}
+      <HomeFAQ />
 
       {/* CTA Section - inverted accent */}
       <section className="py-16 bg-[var(--text)] text-[var(--bg)]">
