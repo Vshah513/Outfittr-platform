@@ -322,20 +322,32 @@ export default function EditListingPage() {
 
       // Images are already in the correct order - first image is always the cover
 
-      // Update product
+      const productPayload = {
+        ...formData,
+        price: parseFloat(formData.price) || 0,
+        shipping_cost: (formData.delivery_method === 'shipping' || formData.delivery_method === 'both') && formData.shipping_cost
+          ? parseFloat(formData.shipping_cost)
+          : undefined,
+        meetup_location: (formData.delivery_method === 'pickup' || formData.delivery_method === 'both') && formData.meetup_location
+          ? formData.meetup_location
+          : undefined,
+        images: finalImageUrls,
+        status: saveAsDraft ? 'draft' : formData.status,
+      };
+
       const productResponse = await fetch(`/api/products/${productId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...formData,
-          price: parseFloat(formData.price),
-          shipping_cost: formData.shipping_cost ? parseFloat(formData.shipping_cost) : undefined,
-          images: finalImageUrls,
-          status: saveAsDraft ? 'draft' : formData.status,
-        }),
+        body: JSON.stringify(productPayload),
       });
 
-      const productData = await productResponse.json();
+      let productData: { error?: string; data?: unknown } = {};
+      try {
+        const text = await productResponse.text();
+        productData = text ? JSON.parse(text) : {};
+      } catch {
+        throw new Error('The server returned an invalid response. Please try again.');
+      }
 
       if (!productResponse.ok) {
         throw new Error(productData.error || 'Failed to update listing');

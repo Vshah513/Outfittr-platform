@@ -42,20 +42,23 @@ export async function GET(
   }
 }
 
-// PUT /api/products/[id] - Update product
+// PUT /api/products/[id] - Update product (matches create schema categories)
 const updateProductSchema = z.object({
   title: z.string().min(5).optional(),
   description: z.string().min(20).optional(),
-  price: z.number().positive().optional(),
-  category: z.enum(['mens', 'womens', 'kids', 'sports', 'trending', 'sale']).optional(),
+  price: z.coerce.number().positive().optional(),
+  category: z.enum(['mens', 'womens', 'kids', 'sports', 'clothing', 'shoes', 'accessories', 'bags', 'vintage', 'trending', 'sale']).optional(),
   subcategory: z.string().optional(),
-  size: z.string().optional(),
+  size: z.preprocess((v) => (v === '' || v === null || v === undefined ? undefined : v), z.string().optional()),
   condition: z.enum(['brand_new', 'like_new', 'excellent', 'good', 'fair']).optional(),
-  brand: z.string().optional(),
-  images: z.array(z.string()).min(1).max(5).optional(),
+  brand: z.preprocess((v) => (v === '' || v === null || v === undefined ? undefined : v), z.string().optional()),
+  images: z.array(z.string().min(1)).min(1).max(5).optional(),
   delivery_method: z.enum(['pickup', 'shipping', 'both']).optional(),
-  meetup_location: z.string().optional(),
-  shipping_cost: z.number().optional(),
+  meetup_location: z.preprocess((v) => (v === '' || v === null || v === undefined ? undefined : v), z.string().optional()),
+  shipping_cost: z.preprocess(
+    (v) => (v === '' || v === null || v === undefined ? undefined : Number(v)),
+    z.number().min(0).optional()
+  ),
   status: z.enum(['active', 'sold', 'archived']).optional(),
 });
 
@@ -71,7 +74,16 @@ export async function PUT(
     }
 
     const body = await request.json();
-    const updates = updateProductSchema.parse(body);
+    const parsed = updateProductSchema.safeParse(body);
+    if (!parsed.success) {
+      const firstError = parsed.error.errors[0];
+      const field = firstError.path.join('.') || 'field';
+      return NextResponse.json(
+        { error: `${firstError.message || 'Invalid input'} (${field})` },
+        { status: 400 }
+      );
+    }
+    const updates = parsed.data;
 
     const supabase = getServiceSupabase();
     

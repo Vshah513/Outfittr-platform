@@ -181,19 +181,23 @@ export async function GET(request: NextRequest) {
 }
 
 // POST /api/products - Create new product
+// Use coercion and preprocessing to handle form data edge cases (empty strings, string numbers)
 const createProductSchema = z.object({
   title: z.string().min(5, 'Title must be at least 5 characters'),
   description: z.string().min(20, 'Description must be at least 20 characters'),
-  price: z.number().positive('Price must be positive'),
+  price: z.coerce.number().positive('Price must be positive'),
   category: z.enum(['mens', 'womens', 'kids', 'sports', 'clothing', 'shoes', 'accessories', 'bags', 'vintage', 'trending', 'sale']),
   subcategory: z.string().min(1, 'Subcategory is required'),
-  size: z.string().optional(),
+  size: z.preprocess((v) => (v === '' || v === null || v === undefined ? undefined : v), z.string().optional()),
   condition: z.enum(['brand_new', 'like_new', 'excellent', 'good', 'fair']),
-  brand: z.string().optional(),
-  images: z.array(z.string()).min(1, 'At least one image is required').max(5, 'Maximum 5 images allowed'),
+  brand: z.preprocess((v) => (v === '' || v === null || v === undefined ? undefined : v), z.string().optional()),
+  images: z.array(z.string().min(1, 'Image URL cannot be empty')).min(1, 'At least one image is required').max(5, 'Maximum 5 images allowed'),
   delivery_method: z.enum(['pickup', 'shipping', 'both']),
-  meetup_location: z.string().optional(),
-  shipping_cost: z.number().optional(),
+  meetup_location: z.preprocess((v) => (v === '' || v === null || v === undefined ? undefined : v), z.string().optional()),
+  shipping_cost: z.preprocess(
+    (v) => (v === '' || v === null || v === undefined ? undefined : Number(v)),
+    z.number().min(0, 'Shipping cost cannot be negative').optional()
+  ),
   status: z.enum(['active', 'draft', 'sold']).optional(),
 });
 
@@ -205,7 +209,17 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const productData = createProductSchema.parse(body);
+    const parsed = createProductSchema.safeParse(body);
+    if (!parsed.success) {
+      const firstError = parsed.error.errors[0];
+      const field = firstError.path.join('.') || 'field';
+      const message = firstError.message || 'Invalid input';
+      return NextResponse.json(
+        { error: `${message} (${field})` },
+        { status: 400 }
+      );
+    }
+    const productData = parsed.data;
 
     const supabase = getServiceSupabase();
     
@@ -260,8 +274,10 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ data }, { status: 201 });
   } catch (error) {
     if (error instanceof z.ZodError) {
+      const first = error.errors[0];
+      const field = first?.path?.join('.') || 'field';
       return NextResponse.json(
-        { error: error.errors[0].message },
+        { error: `${first?.message || 'Invalid input'} (${field})` },
         { status: 400 }
       );
     }

@@ -245,19 +245,32 @@ export default function NewListingPage() {
 
       // Images are already in the correct order - first image is the cover
       // Create product
+      const productPayload = {
+        ...formData,
+        price: parseFloat(formData.price) || 0,
+        shipping_cost: (formData.delivery_method === 'shipping' || formData.delivery_method === 'both') && formData.shipping_cost
+          ? parseFloat(formData.shipping_cost)
+          : undefined,
+        meetup_location: (formData.delivery_method === 'pickup' || formData.delivery_method === 'both') && formData.meetup_location
+          ? formData.meetup_location
+          : undefined,
+        images: uploadData.urls,
+        status: saveAsDraft ? 'draft' : 'active',
+      };
+
       const productResponse = await fetch('/api/products', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...formData,
-          price: parseFloat(formData.price),
-          shipping_cost: formData.shipping_cost ? parseFloat(formData.shipping_cost) : undefined,
-          images: uploadData.urls,
-          status: saveAsDraft ? 'draft' : 'active',
-        }),
+        body: JSON.stringify(productPayload),
       });
 
-      const productData = await productResponse.json();
+      let productData: { error?: string; data?: unknown } = {};
+      try {
+        const text = await productResponse.text();
+        productData = text ? JSON.parse(text) : {};
+      } catch {
+        throw new Error('The server returned an invalid response. Please try again.');
+      }
 
       if (!productResponse.ok) {
         throw new Error(productData.error || 'Failed to create listing');
