@@ -37,14 +37,20 @@ export default function VintageProductCard({
   const [saved, setSaved] = useState(isSaved);
   const [isHovered, setIsHovered] = useState(false);
   const [imageError, setImageError] = useState(false);
+  const [secondImageError, setSecondImageError] = useState(false);
   
   // Safely get the first image with fallback
   const mainImage = (product.images && Array.isArray(product.images) && product.images.length > 0)
     ? product.images[0]
     : '/placeholder-product.jpg';
   
-  // Use placeholder if image failed to load
-  const displayImage = imageError ? '/placeholder-product.jpg' : mainImage;
+  const secondImage = (product.images && product.images.length > 1) ? product.images[1] : null;
+  const hasHoverImage = secondImage && !secondImageError;
+  
+  // Use second image on hover when available, else first (or placeholder on error)
+  const displayImage = imageError
+    ? '/placeholder-product.jpg'
+    : (isHovered && hasHoverImage ? secondImage : mainImage);
   
   const sellerId = product.seller?.id || product.seller_id;
   const sellerName = product.seller?.full_name || product.seller_name || 'Seller';
@@ -53,6 +59,7 @@ export default function VintageProductCard({
   // Reset error state when product changes
   React.useEffect(() => {
     setImageError(false);
+    setSecondImageError(false);
   }, [product.id]);
 
   const handleSave = (e: React.MouseEvent) => {
@@ -95,10 +102,14 @@ export default function VintageProductCard({
           <img
             src={displayImage}
             alt={product.title}
-            className="absolute inset-0 w-full h-full object-cover filter-vintage transition-transform duration-500 group-hover:scale-105"
+            className="absolute inset-0 w-full h-full object-cover filter-vintage transition-all duration-300 group-hover:scale-105"
             onError={() => {
-              console.error('Image failed to load:', { src: mainImage, product: product.title });
-              setImageError(true);
+              const src = displayImage;
+              if (src === secondImage) setSecondImageError(true);
+              else {
+                console.error('Image failed to load:', { src: mainImage, product: product.title });
+                setImageError(true);
+              }
             }}
           />
           

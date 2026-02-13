@@ -13,16 +13,14 @@ import StepIndicator from '@/components/listings/StepIndicator';
 import ListingPreview from '@/components/listings/ListingPreview';
 import { NAIROBI_AREAS, OTHER_CITIES } from '@/lib/locations';
 
-// Subcategories for each main category
+// Subcategories for each main category (shoes & bags merged into accessories)
 const SUBCATEGORIES: Record<string, string[]> = {
   mens: ['T-Shirts', 'Shirts', 'Trousers', 'Jeans', 'Shorts', 'Jackets', 'Suits', 'Sweaters', 'Hoodies'],
   womens: ['Dresses', 'Tops', 'Blouses', 'Skirts', 'Trousers', 'Jeans', 'Jackets', 'Sweaters', 'Jumpsuits'],
   kids: ['Boys Clothing', 'Girls Clothing', 'Baby Clothing', 'School Uniforms', 'Jackets', 'Shoes'],
   sports: ['Activewear', 'Sneakers', 'Jerseys', 'Tracksuits', 'Sports Bras', 'Shorts'],
   clothing: ['Tops', 'Bottoms', 'Dresses', 'Outerwear', 'Suits', 'Activewear'],
-  shoes: ['Sneakers', 'Heels', 'Boots', 'Sandals', 'Flats', 'Loafers', 'Sports Shoes'],
-  accessories: ['Watches', 'Jewelry', 'Belts', 'Hats', 'Scarves', 'Sunglasses', 'Wallets'],
-  bags: ['Handbags', 'Backpacks', 'Clutches', 'Totes', 'Crossbody', 'Duffel Bags'],
+  accessories: ['Watches', 'Jewelry', 'Belts', 'Hats', 'Scarves', 'Sunglasses', 'Wallets', 'Sneakers', 'Heels', 'Boots', 'Sandals', 'Flats', 'Loafers', 'Sports Shoes', 'Handbags', 'Backpacks', 'Clutches', 'Totes', 'Crossbody', 'Duffel Bags'],
   vintage: ['70s', '80s', '90s', 'Y2K', 'Designer Vintage', 'Retro'],
 };
 
@@ -313,7 +311,7 @@ export default function NewListingPage() {
   return (
     <div className="min-h-screen bg-marketplace pb-24">
       {/* Header */}
-      <div className="bg-white border-b border-vintage">
+      <div className="bg-[var(--surface)] border-b border-[var(--border)]">
         <div className="max-w-7xl mx-auto px-4 py-6 sm:py-8">
           <div className="flex items-center gap-3 mb-6">
             <button
@@ -342,16 +340,16 @@ export default function NewListingPage() {
       {/* Global Error */}
         {error && (
         <div className="max-w-7xl mx-auto px-4 mt-6">
-          <div className="bg-red-50 border border-red-200 rounded-vintage p-4 flex items-start gap-3">
-            <svg className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+          <div className="bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800/50 rounded-vintage p-4 flex items-start gap-3">
+            <svg className="w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
               <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
             </svg>
             <div className="flex-1">
-              <p className="text-sm font-medium text-red-800">{error}</p>
+              <p className="text-sm font-medium text-red-800 dark:text-red-300">{error}</p>
             </div>
             <button
               onClick={() => setError('')}
-              className="text-red-600 hover:text-red-800 transition-colors"
+              className="text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-200 transition-colors"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -457,9 +455,7 @@ export default function NewListingPage() {
                         { value: 'womens', label: "Women's" },
                         { value: 'kids', label: 'Kids' },
                         { value: 'sports', label: 'Sports' },
-                        { value: 'shoes', label: 'Shoes' },
                         { value: 'accessories', label: 'Accessories' },
-                        { value: 'bags', label: 'Bags' },
                         { value: 'vintage', label: 'Vintage' },
                       ]}
                     />
@@ -523,6 +519,7 @@ export default function NewListingPage() {
                     value={formData.size}
                     onChange={(value) => setFormData({ ...formData, size: value })}
                     category={formData.category}
+                    subcategory={formData.subcategory}
                     helperText="Select a preset or enter custom"
                   />
                 </div>
@@ -614,7 +611,7 @@ export default function NewListingPage() {
       </div>
 
       {/* Sticky Bottom Action Bar */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-vintage shadow-lg z-40">
+      <div className="fixed bottom-0 left-0 right-0 bg-[var(--surface)] border-t border-[var(--border)] shadow-lg z-40 pb-[env(safe-area-inset-bottom)]">
         <div className="max-w-7xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between gap-4">
             {/* Left: Back/Cancel */}
@@ -649,7 +646,7 @@ export default function NewListingPage() {
                   type="button"
                   onClick={() => handleSubmit(true)}
                   disabled={isLoading}
-                  className="hidden sm:block px-5 py-2.5 rounded-vintage font-medium text-sm transition-all duration-200 bg-vintage-cream hover:bg-vintage-stone text-vintage-primary disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="hidden sm:block px-5 py-2.5 rounded-vintage font-medium text-sm transition-all duration-200 bg-[var(--surface-2)] hover:bg-[var(--input-fill)] text-[var(--text)] disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isDraft && isLoading ? 'Saving...' : 'Save Draft'}
                 </button>
@@ -661,7 +658,7 @@ export default function NewListingPage() {
                   type="button"
                   onClick={handleNext}
                   disabled={!canProceedToNext()}
-                  className="px-6 py-2.5 rounded-vintage font-medium text-sm bg-vintage-primary text-white transition-all duration-200 hover:bg-opacity-90 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                  className="px-6 py-2.5 rounded-vintage font-medium text-sm bg-[var(--text)] text-[var(--bg)] transition-all duration-200 hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                 >
                   Continue
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -673,7 +670,7 @@ export default function NewListingPage() {
                   type="button"
                   onClick={() => handleSubmit(false)}
                   disabled={isLoading || !canProceedToNext()}
-                  className="px-6 py-2.5 rounded-vintage font-medium text-sm bg-vintage-primary text-white transition-all duration-200 hover:bg-opacity-90 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                  className="px-6 py-2.5 rounded-vintage font-medium text-sm bg-[var(--text)] text-[var(--bg)] transition-all duration-200 hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                 >
                   {isLoading && !isDraft ? (
                     <>

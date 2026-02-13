@@ -59,10 +59,13 @@ export const SIZE_PRESETS: Record<string, SizePreset[]> = {
   ],
 };
 
+const SHOE_SUBCATEGORIES = ['Sneakers', 'Heels', 'Boots', 'Sandals', 'Flats', 'Loafers', 'Sports Shoes'];
+
 interface SizeSelectorProps {
   value: string;
   onChange: (value: string) => void;
   category: string;
+  subcategory?: string;
   label?: string;
   error?: string;
   helperText?: string;
@@ -72,12 +75,16 @@ export default function SizeSelector({
   value,
   onChange,
   category,
+  subcategory,
   label,
   error,
   helperText,
 }: SizeSelectorProps) {
   const [customMode, setCustomMode] = React.useState(false);
-  const presets = SIZE_PRESETS[category] || SIZE_PRESETS.default;
+  // Use shoe sizes when accessories + shoe subcategory (Sneakers, Heels, etc.)
+  const useShoeSizes = category === 'accessories' && subcategory && SHOE_SUBCATEGORIES.includes(subcategory);
+  const effectiveCategory = useShoeSizes ? 'shoes' : category;
+  const presets = SIZE_PRESETS[effectiveCategory] || SIZE_PRESETS.default;
 
   // Check if current value is in presets
   const isPresetValue = presets.some(p => p.value === value);

@@ -18,6 +18,7 @@ interface CatalogProductCardProps {
 
 export default function CatalogProductCard({ product }: CatalogProductCardProps) {
   const [imageError, setImageError] = useState(false);
+  const [secondImageError, setSecondImageError] = useState(false);
   
   // Safely get the first image with multiple fallbacks
   let mainImage = '/placeholder-product.jpg';
@@ -25,6 +26,9 @@ export default function CatalogProductCard({ product }: CatalogProductCardProps)
   if (product.images && Array.isArray(product.images) && product.images.length > 0) {
     mainImage = product.images[0];
   }
+  
+  const secondImage = (product.images && product.images.length > 1) ? product.images[1] : null;
+  const hasHoverImage = secondImage && !secondImageError;
   
   // Use placeholder if image failed to load or no valid image URL
   const displayImage = imageError ? '/placeholder-product.jpg' : mainImage;
@@ -46,6 +50,7 @@ export default function CatalogProductCard({ product }: CatalogProductCardProps)
   // Reset error state when product changes
   React.useEffect(() => {
     setImageError(false);
+    setSecondImageError(false);
   }, [product.id]);
 
   return (
@@ -66,6 +71,15 @@ export default function CatalogProductCard({ product }: CatalogProductCardProps)
               setImageError(true);
             }}
           />
+          {hasHoverImage && (
+            /* eslint-disable-next-line @next/next/no-img-element */
+            <img
+              src={secondImage}
+              alt={product.title}
+              className="absolute inset-0 w-full h-full object-cover transition-all duration-300 opacity-0 group-hover:opacity-100 group-hover:scale-105"
+              onError={() => setSecondImageError(true)}
+            />
+          )}
           
           {/* Like Button */}
           <button 

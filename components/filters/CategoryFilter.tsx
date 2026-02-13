@@ -12,9 +12,7 @@ interface CategoryFilterProps {
 
 const categories = {
   clothing: { label: 'Clothing', subcategories: ['Tops', 'Bottoms', 'Dresses', 'Outerwear', 'Activewear'] },
-  shoes: { label: 'Shoes', subcategories: ['Sneakers', 'Boots', 'Heels', 'Sandals', 'Flats'] },
-  accessories: { label: 'Accessories', subcategories: ['Jewelry', 'Watches', 'Sunglasses', 'Hats', 'Scarves'] },
-  bags: { label: 'Bags', subcategories: ['Backpacks', 'Handbags', 'Crossbody', 'Totes', 'Clutches'] },
+  accessories: { label: 'Accessories', subcategories: ['Jewelry', 'Watches', 'Sunglasses', 'Hats', 'Scarves', 'Sneakers', 'Boots', 'Heels', 'Sandals', 'Flats', 'Handbags', 'Backpacks', 'Crossbody', 'Totes', 'Clutches'] },
   beauty: { label: 'Beauty', subcategories: ['Makeup', 'Skincare', 'Fragrance', 'Hair'] },
   home: { label: 'Home', subcategories: ['Decor', 'Furniture', 'Lighting', 'Textiles'] },
   electronics: { label: 'Electronics', subcategories: ['Phones', 'Tablets', 'Audio', 'Cameras'] },

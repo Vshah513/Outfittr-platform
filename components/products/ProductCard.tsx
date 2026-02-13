@@ -31,11 +31,19 @@ export default function ProductCard({
   showBundleButton = false,
 }: ProductCardProps) {
   const [imageError, setImageError] = useState(false);
+  const [secondImageError, setSecondImageError] = useState(false);
   
   // Safely get the first image with fallback
   const mainImage = (product.images && Array.isArray(product.images) && product.images.length > 0)
     ? product.images[0]
     : '/placeholder-product.jpg';
+  
+  // Second image for hover (when seller uploaded more than one)
+  const secondImage = (product.images && Array.isArray(product.images) && product.images.length > 1)
+    ? product.images[1]
+    : null;
+  
+  const hasHoverImage = secondImage && !secondImageError;
   
   // Use placeholder if image failed to load
   const displayImage = imageError ? '/placeholder-product.jpg' : mainImage;
@@ -46,6 +54,7 @@ export default function ProductCard({
   // Reset error state when product changes
   useEffect(() => {
     setImageError(false);
+    setSecondImageError(false);
   }, [product.id]);
 
   return (
@@ -62,6 +71,16 @@ export default function ProductCard({
               setImageError(true);
             }}
           />
+          {/* Second image on hover */}
+          {hasHoverImage && (
+            /* eslint-disable-next-line @next/next/no-img-element */
+            <img
+              src={secondImage!}
+              alt={product.title}
+              className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-all duration-300 opacity-0 group-hover:opacity-100"
+              onError={() => setSecondImageError(true)}
+            />
+          )}
           
           {/* Action Buttons */}
           <div className="absolute top-2 right-2 flex items-center gap-1.5 z-10">

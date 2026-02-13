@@ -16,7 +16,10 @@ const VIBES: { key: VibeKey; label: string }[] = [
 
 function VibeProductCard({ product }: { product: Product }) {
   const [imageError, setImageError] = useState(false);
+  const [secondImageError, setSecondImageError] = useState(false);
   const mainImage = (product.images && product.images.length > 0) ? product.images[0] : '/placeholder-product.jpg';
+  const secondImage = (product.images && product.images.length > 1) ? product.images[1] : null;
+  const hasHoverImage = secondImage && !secondImageError;
   const displayImage = imageError ? '/placeholder-product.jpg' : mainImage;
 
   const subtitle = [product.size, product.color, product.subcategory].filter(Boolean).join(' ');
@@ -35,6 +38,15 @@ function VibeProductCard({ product }: { product: Product }) {
           className="absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
           onError={() => setImageError(true)}
         />
+        {hasHoverImage && (
+          /* eslint-disable-next-line @next/next/no-img-element */
+          <img
+            src={secondImage}
+            alt={product.title}
+            className="absolute inset-0 w-full h-full object-cover transition-all duration-300 opacity-0 group-hover:opacity-100 group-hover:scale-105"
+            onError={() => setSecondImageError(true)}
+          />
+        )}
       </div>
       <p className="font-bold text-[var(--text)]">{formatPrice(product.price)}</p>
       <p className="text-sm text-[var(--text-2)] line-clamp-2 mt-0.5 group-hover:underline">

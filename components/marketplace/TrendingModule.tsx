@@ -27,30 +27,42 @@ export default function TrendingModule({
       </div>
       
       <div className="grid grid-cols-3 gap-3">
-        {products.slice(0, 3).map((product, index) => (
-          <Link
-            key={product.id}
-            href={`/product/${product.id}`}
-            className="group"
-          >
-            <div className="relative aspect-square overflow-hidden rounded-vintage bg-vintage-stone mb-2">
-              <Image
-                src={product.images[0] || '/placeholder-product.jpg'}
-                alt={product.title}
-                fill
-                className="object-cover filter-vintage group-hover:scale-105 transition-transform duration-300"
-                sizes="(max-width: 768px) 33vw, 100px"
-              />
-              {/* Rank badge */}
-              <div className="absolute top-1.5 left-1.5 w-5 h-5 bg-vintage-paper/90 rounded-full flex items-center justify-center">
-                <span className="text-[10px] font-semibold text-vintage-primary">{index + 1}</span>
+        {products.slice(0, 3).map((product, index) => {
+          const mainImage = product.images?.[0] || '/placeholder-product.jpg';
+          const secondImage = product.images?.length > 1 ? product.images[1] : null;
+          return (
+            <Link
+              key={product.id}
+              href={`/product/${product.id}`}
+              className="group"
+            >
+              <div className="relative aspect-square overflow-hidden rounded-vintage bg-vintage-stone mb-2">
+                <Image
+                  src={mainImage}
+                  alt={product.title}
+                  fill
+                  className="object-cover filter-vintage group-hover:scale-105 transition-transform duration-300"
+                  sizes="(max-width: 768px) 33vw, 100px"
+                />
+                {secondImage && (
+                  /* eslint-disable-next-line @next/next/no-img-element */
+                  <img
+                    src={secondImage}
+                    alt={product.title}
+                    className="absolute inset-0 w-full h-full object-cover filter-vintage transition-all duration-300 opacity-0 group-hover:opacity-100 group-hover:scale-105"
+                  />
+                )}
+                {/* Rank badge */}
+                <div className="absolute top-1.5 left-1.5 w-5 h-5 bg-vintage-paper/90 rounded-full flex items-center justify-center z-10">
+                  <span className="text-[10px] font-semibold text-vintage-primary">{index + 1}</span>
+                </div>
               </div>
-            </div>
-            <p className="text-xs text-vintage-primary font-medium truncate">
-              {formatPrice(product.price)}
-            </p>
-          </Link>
-        ))}
+              <p className="text-xs text-vintage-primary font-medium truncate">
+                {formatPrice(product.price)}
+              </p>
+            </Link>
+          );
+        })}
       </div>
     </div>
   );

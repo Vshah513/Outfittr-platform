@@ -211,13 +211,13 @@ export default function Navbar() {
     <nav className="fixed top-0 left-0 right-0 z-[100] w-full border-b border-[var(--border)] bg-[var(--surface)]">
       {/* Top Bar */}
       <div className="max-w-7xl mx-auto px-4">
-        <div className="flex items-center justify-between h-24">
-          {/* Logo */}
-          <Link href="/" className="flex items-center flex-shrink-0 pr-12">
+        <div className="flex items-center justify-between h-16 md:h-24 min-h-[4rem] gap-2">
+          {/* Logo - shrink on mobile to prevent overflow */}
+          <Link href="/" className="flex items-center min-w-0 flex-shrink pr-2 md:pr-8">
             <img
               src={theme === 'dark' ? '/collections/Outfittr Logo.png' : '/collections/Black Logo.jpg'}
               alt="Outfittr"
-              className="h-20 w-auto object-contain"
+              className="h-12 md:h-20 w-auto object-contain max-h-[3rem] md:max-h-[5rem]"
               style={{ display: 'block' }}
             />
           </Link>
@@ -245,8 +245,8 @@ export default function Navbar() {
             </div>
           </form>
 
-          {/* Right Side Actions - Vintage Editorial Utility Row */}
-          <div className="flex items-center gap-2 md:gap-5">
+          {/* Right Side Actions - Vintage Editorial Utility Row (flex-shrink-0 prevents cutoff) */}
+          <div className="flex items-center flex-shrink-0 gap-1.5 sm:gap-2 md:gap-5">
             {/* Saved Items - to the left of Sell */}
             <Link
               href={user ? '/saved' : '#'}
@@ -285,7 +285,7 @@ export default function Navbar() {
             <button
               type="button"
               onClick={() => setShowLeaderboardModal(true)}
-              className="md:hidden p-2 rounded-full border border-[var(--border)] bg-[var(--surface-2)] text-[var(--text-2)] transition-all hover:bg-[var(--surface)] focus:outline-none focus:ring-2 focus:ring-[var(--brand)] focus:ring-offset-1 [touch-action:manipulation]"
+              className="md:hidden p-1.5 rounded-full border border-[var(--border)] bg-[var(--surface-2)] text-[var(--text-2)] transition-all hover:bg-[var(--surface)] focus:outline-none focus:ring-2 focus:ring-[var(--brand)] focus:ring-offset-1 flex-shrink-0 [touch-action:manipulation]"
               aria-label="Seller Leaderboard"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
@@ -297,7 +297,7 @@ export default function Navbar() {
             <button
               type="button"
               onClick={handleSellClick}
-              className="md:hidden flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium uppercase bg-[var(--text)] text-[var(--bg)] rounded-full hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-[var(--brand)] focus:ring-offset-1 [touch-action:manipulation]"
+              className="md:hidden flex items-center gap-1 flex-shrink-0 px-2.5 py-1.5 text-xs font-medium uppercase bg-[var(--text)] text-[var(--bg)] rounded-full hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-[var(--brand)] focus:ring-offset-1 [touch-action:manipulation]"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
@@ -306,7 +306,7 @@ export default function Navbar() {
             </button>
 
             {/* Profile - far right (where menu was on mobile) */}
-            <div className="relative" ref={profileRef}>
+            <div className="relative flex-shrink-0" ref={profileRef}>
               <button
                 type="button"
                 onClick={handleProfileClick}

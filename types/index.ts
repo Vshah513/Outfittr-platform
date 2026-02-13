@@ -126,16 +126,14 @@ export interface Conversation {
   updated_at?: string;
 }
 
-// Subcategories for each main category
+// Subcategories for each main category (shoes & bags merged into accessories)
 export const SUBCATEGORIES: Record<string, string[]> = {
   mens: ['T-Shirts', 'Shirts', 'Trousers', 'Jeans', 'Shorts', 'Jackets', 'Suits', 'Sweaters', 'Hoodies'],
   womens: ['Dresses', 'Tops', 'Blouses', 'Skirts', 'Trousers', 'Jeans', 'Jackets', 'Sweaters', 'Jumpsuits'],
   kids: ['Boys Clothing', 'Girls Clothing', 'Baby Clothing', 'School Uniforms', 'Jackets', 'Shoes'],
   sports: ['Activewear', 'Sneakers', 'Jerseys', 'Tracksuits', 'Sports Bras', 'Shorts'],
   clothing: ['Tops', 'Bottoms', 'Dresses', 'Outerwear', 'Suits', 'Activewear'],
-  shoes: ['Sneakers', 'Heels', 'Boots', 'Sandals', 'Flats', 'Loafers', 'Sports Shoes'],
-  accessories: ['Watches', 'Jewelry', 'Belts', 'Hats', 'Scarves', 'Sunglasses', 'Wallets'],
-  bags: ['Handbags', 'Backpacks', 'Clutches', 'Totes', 'Crossbody', 'Duffel Bags'],
+  accessories: ['Watches', 'Jewelry', 'Belts', 'Hats', 'Scarves', 'Sunglasses', 'Wallets', 'Sneakers', 'Heels', 'Boots', 'Sandals', 'Flats', 'Loafers', 'Sports Shoes', 'Handbags', 'Backpacks', 'Clutches', 'Totes', 'Crossbody', 'Duffel Bags'],
   vintage: ['70s', '80s', '90s', 'Y2K', 'Designer Vintage', 'Retro'],
 };
 

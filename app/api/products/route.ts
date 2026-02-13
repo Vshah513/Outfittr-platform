@@ -89,9 +89,13 @@ export async function GET(request: NextRequest) {
       }
     }
     
-    // Apply filters
+    // Apply filters (accessories includes shoes & bags for backward compatibility)
     if (filters.category) {
-      query = query.eq('category', filters.category);
+      if (filters.category === 'accessories') {
+        query = query.in('category', ['accessories', 'shoes', 'bags']);
+      } else {
+        query = query.eq('category', filters.category);
+      }
     }
     if (filters.subcategory) {
       query = query.ilike('subcategory', `%${filters.subcategory}%`);
