@@ -36,6 +36,12 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ user: null });
     }
 
+    const { data: sellerProfile } = await serviceSupabase
+      .from('seller_profiles')
+      .select('activated, trust_status')
+      .eq('user_id', user.id)
+      .maybeSingle();
+
     return NextResponse.json({
       user: {
         id: user.id,
@@ -50,6 +56,8 @@ export async function GET(request: NextRequest) {
         rating: user.rating,
         total_sales: user.total_sales,
         is_admin: user.is_admin || false,
+        seller_activated: sellerProfile?.activated ?? false,
+        seller_trust_status: sellerProfile?.trust_status ?? null,
       },
     });
   } catch (error) {

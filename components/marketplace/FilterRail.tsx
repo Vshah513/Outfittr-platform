@@ -26,7 +26,7 @@ interface FilterRailProps {
   onClearAll: () => void;
 }
 
-const CATEGORIES: { value: ProductCategory | string; label: string; subcategories: string[] }[] = [
+const CATEGORIES: { value: ProductCategory; label: string; subcategories: string[] }[] = [
   { value: 'clothing', label: 'Clothing', subcategories: ['Tops', 'Bottoms', 'Dresses', 'Outerwear', 'Activewear'] },
   { value: 'accessories', label: 'Accessories', subcategories: ['Jewelry', 'Watches', 'Sunglasses', 'Hats', 'Scarves', 'Sneakers', 'Boots', 'Heels', 'Sandals', 'Flats', 'Handbags', 'Backpacks', 'Crossbody', 'Totes', 'Clutches'] },
   { value: 'vintage', label: 'Vintage', subcategories: ['70s', '80s', '90s', 'Y2K', 'Designer Vintage'] },

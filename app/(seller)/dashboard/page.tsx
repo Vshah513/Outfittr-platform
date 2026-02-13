@@ -9,6 +9,7 @@ import { formatPrice } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
 import { PlanLimitsBanner } from '@/components/monetization/PlanLimitsBanner';
 import { BoostButton } from '@/components/monetization/BoostButton';
+import { MAX_ACTIVE_LISTINGS_NEW_SELLER } from '@/lib/seller-limits';
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -23,19 +24,42 @@ export default function DashboardPage() {
     totalViews: 0,
     totalEarnings: 0,
   });
+  const [sellerActivated, setSellerActivated] = useState<boolean | null>(null);
+  const [sellerTrustStatus, setSellerTrustStatus] = useState<string | null>(null);
 
-  // Protect this page - require authentication
+  // Require authentication
   useEffect(() => {
     if (!authLoading && !user) {
       router.push('/login?returnTo=/dashboard');
     }
   }, [user, authLoading, router]);
 
+  // Require seller activation; redirect to onboarding if not activated
   useEffect(() => {
-    if (user) {
+    if (!user) return;
+    let cancelled = false;
+    fetch('/api/seller-profile')
+      .then((res) => res.json())
+      .then((data) => {
+        if (cancelled) return;
+        if (data.activated === true) {
+          setSellerActivated(true);
+          setSellerTrustStatus(data.trustStatus ?? null);
+        } else {
+          router.replace('/sell/onboarding?from=dashboard');
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setSellerActivated(false);
+      });
+    return () => { cancelled = true; };
+  }, [user, router]);
+
+  useEffect(() => {
+    if (user && sellerActivated) {
       fetchSellerProducts();
     }
-  }, [user]);
+  }, [user, sellerActivated]);
 
   const fetchSellerProducts = async () => {
     setIsLoading(true);
@@ -172,8 +196,8 @@ export default function DashboardPage() {
     }
   };
 
-  // Show loading state while checking authentication
-  if (authLoading || !user) {
+  // Show loading while checking auth or seller activation
+  if (authLoading || !user || (user && sellerActivated === null)) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[var(--bg)]">
         <div className="text-center">
@@ -214,6 +238,12 @@ export default function DashboardPage() {
             </Link>
           </div>
         </div>
+
+        {sellerTrustStatus === 'new' && (
+          <div className="mb-6 p-4 rounded-lg bg-[var(--surface-2)] border border-[var(--border)] text-sm text-[var(--text-2)]">
+            New seller limits: up to {MAX_ACTIVE_LISTINGS_NEW_SELLER} active listings until you complete 3 successful sales.
+          </div>
+        )}
 
         {/* Plan Limits Banner */}
         <div className="mb-6">

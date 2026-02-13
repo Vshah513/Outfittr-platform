@@ -85,6 +85,29 @@ export interface User {
   payout_account_name?: string;
   payout_bank_name?: string;
   seller_onboarded_at?: string;
+  seller_activated?: boolean;
+  seller_trust_status?: 'new' | 'standard';
+}
+
+export interface SellerProfile {
+  user_id: string;
+  activated: boolean;
+  display_name?: string | null;
+  email?: string | null;
+  mpesa_number?: string | null;
+  profile_photo_url?: string | null;
+  nairobi_area?: string | null;
+  meetup_zones: string[];
+  delivery_preference?: 'pickup' | 'delivery' | 'both' | null;
+  delivery_fee_range?: string | null;
+  legal_name?: string | null;
+  dob?: string | null;
+  selfie_url?: string | null;
+  agreed_to_rules: boolean;
+  trust_status: 'new' | 'standard';
+  onboarding_step: number;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface Message {

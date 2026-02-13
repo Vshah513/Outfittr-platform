@@ -26,7 +26,7 @@ interface FilterDrawerProps {
   onClearAll: () => void;
 }
 
-const CATEGORIES: { value: ProductCategory | string; label: string }[] = [
+const CATEGORIES: { value: ProductCategory; label: string }[] = [
   { value: 'clothing', label: 'Clothing' },
   { value: 'accessories', label: 'Accessories' },
   { value: 'vintage', label: 'Vintage' },
