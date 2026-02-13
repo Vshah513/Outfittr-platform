@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Navbar from '@/components/layout/Navbar';
@@ -18,10 +18,22 @@ const STEPS = [
   { number: 2, title: 'Rules' },
 ];
 
-export default function SellOnboardingPage() {
+function OnboardingFallback() {
+  return (
+    <>
+      <Navbar />
+      <main className="min-h-screen bg-[var(--bg)] flex items-center justify-center">
+        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[var(--text)]" />
+      </main>
+      <Footer />
+    </>
+  );
+}
+
+function SellOnboardingContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const returnTo = searchParams.get('returnTo') || '/dashboard';
+  const returnTo = searchParams.get('returnTo') ?? '/dashboard';
   const { user, isLoading: authLoading, refreshUser } = useAuth();
   const [step, setStep] = useState(0);
   const [profile, setProfile] = useState<SellerOnboardingProfile | null | undefined>(undefined);
@@ -30,7 +42,8 @@ export default function SellOnboardingPage() {
 
   useEffect(() => {
     if (!authLoading && !user) {
-      const currentPath = '/sell/onboarding' + (searchParams.get('returnTo') ? '?returnTo=' + encodeURIComponent(searchParams.get('returnTo')) : '');
+      const returnToParam = searchParams.get('returnTo');
+      const currentPath = '/sell/onboarding' + (returnToParam ? '?returnTo=' + encodeURIComponent(returnToParam) : '');
       router.replace('/login?returnTo=' + encodeURIComponent(currentPath));
       return;
     }
@@ -231,5 +244,13 @@ export default function SellOnboardingPage() {
       </main>
       <Footer />
     </>
+  );
+}
+
+export default function SellOnboardingPage() {
+  return (
+    <Suspense fallback={<OnboardingFallback />}>
+      <SellOnboardingContent />
+    </Suspense>
   );
 }
