@@ -1,28 +1,27 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import { useAuth } from '@/contexts/AuthContext';
 import Step0Prescreen from '@/components/sell/onboarding/Step0Prescreen';
 import Step1Basics from '@/components/sell/onboarding/Step1Basics';
-import Step2Location from '@/components/sell/onboarding/Step2Location';
-import Step3Verification from '@/components/sell/onboarding/Step3Verification';
+import Step2And3Combined from '@/components/sell/onboarding/Step2And3Combined';
 import Step4Rules from '@/components/sell/onboarding/Step4Rules';
 import type { SellerOnboardingProfile } from '@/types';
 
 const STEPS = [
-  { number: 0, title: 'Start' },
-  { number: 1, title: 'Basics' },
-  { number: 2, title: 'Location' },
-  { number: 3, title: 'Verification' },
-  { number: 4, title: 'Rules' },
+  { number: 0, title: 'Basics' },
+  { number: 1, title: 'Location & verification' },
+  { number: 2, title: 'Rules' },
 ];
 
 export default function SellOnboardingPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const returnTo = searchParams.get('returnTo') || '/dashboard';
   const { user, isLoading: authLoading, refreshUser } = useAuth();
   const [step, setStep] = useState(0);
   const [profile, setProfile] = useState<SellerOnboardingProfile | null | undefined>(undefined);
@@ -31,7 +30,8 @@ export default function SellOnboardingPage() {
 
   useEffect(() => {
     if (!authLoading && !user) {
-      router.replace('/login?returnTo=/sell/onboarding');
+      const currentPath = '/sell/onboarding' + (searchParams.get('returnTo') ? '?returnTo=' + encodeURIComponent(searchParams.get('returnTo')) : '');
+      router.replace('/login?returnTo=' + encodeURIComponent(currentPath));
       return;
     }
     if (!user) return;
@@ -40,18 +40,17 @@ export default function SellOnboardingPage() {
       .then((res) => res.json())
       .then((data) => {
         if (data.activated === true) {
-          router.replace('/dashboard');
+          router.replace(returnTo);
           return;
         }
         setProfile(data.profile ?? null);
-        const nextStep = data.onboardingStep ?? 0;
-        setStep(Math.min(Math.max(0, nextStep), 4));
+        const backendStep = data.onboardingStep ?? 0;
+        const uiStep = backendStep <= 1 ? 0 : backendStep <= 3 ? 1 : 2;
+        setStep(uiStep);
       })
       .catch(() => setProfile(null))
       .finally(() => setLoadingProfile(false));
-  }, [user, authLoading, router]);
-
-  const handleStep0Continue = () => setStep(1);
+  }, [user, authLoading, router, returnTo]);
 
   const handleStep1Next = async (data: { displayName: string; email: string; mpesaNumber: string; profilePhotoUrl?: string }) => {
     setSaving(true);
@@ -69,7 +68,7 @@ export default function SellOnboardingPage() {
       });
       const json = await res.json();
       if (!res.ok) throw new Error(json.error || 'Failed to save');
-      setStep(2);
+      setStep(1);
       setProfile((prev) => (prev ? { ...prev, ...json.profile } : json.profile));
     } catch (e) {
       alert(e instanceof Error ? e.message : 'Failed to save');
@@ -78,15 +77,10 @@ export default function SellOnboardingPage() {
     }
   };
 
-  const handleStep2Next = async (data: {
-    nairobiArea: string;
-    meetupZones: string[];
-    deliveryPreference: 'pickup' | 'delivery' | 'both';
-    deliveryFeeRange?: string;
-  }) => {
+  const handleStep2And3Next = async (data: import('@/components/sell/onboarding/Step2And3Combined').Step2And3Data) => {
     setSaving(true);
     try {
-      const res = await fetch('/api/seller-profile', {
+      const res2 = await fetch('/api/seller-profile', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -97,26 +91,9 @@ export default function SellOnboardingPage() {
           deliveryFeeRange: data.deliveryFeeRange,
         }),
       });
-      const json = await res.json();
-      if (!res.ok) throw new Error(json.error || 'Failed to save');
-      setStep(3);
-      setProfile((prev) => (prev ? { ...prev, ...json.profile } : json.profile));
-    } catch (e) {
-      alert(e instanceof Error ? e.message : 'Failed to save');
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const handleStep3Next = async (data: {
-    legalName: string;
-    dob: string;
-    selfieUrl: string;
-    agreedToRules: boolean;
-  }) => {
-    setSaving(true);
-    try {
-      const res = await fetch('/api/seller-profile', {
+      const json2 = await res2.json();
+      if (!res2.ok) throw new Error(json2.error || 'Failed to save');
+      const res3 = await fetch('/api/seller-profile', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -127,10 +104,10 @@ export default function SellOnboardingPage() {
           agreedToRules: data.agreedToRules,
         }),
       });
-      const json = await res.json();
-      if (!res.ok) throw new Error(json.error || 'Failed to save');
-      setStep(4);
-      setProfile((prev) => (prev ? { ...prev, ...json.profile } : json.profile));
+      const json3 = await res3.json();
+      if (!res3.ok) throw new Error(json3.error || 'Failed to save');
+      setStep(2);
+      setProfile((prev) => (prev ? { ...prev, ...json3.profile } : json3.profile));
     } catch (e) {
       alert(e instanceof Error ? e.message : 'Failed to save');
     } finally {
@@ -138,7 +115,7 @@ export default function SellOnboardingPage() {
     }
   };
 
-  const handleStep4Submit = async (rules: {
+  const handleRulesSubmit = async (rules: {
     photosActualItem: boolean;
     discloseDefects: boolean;
     noCounterfeit: boolean;
@@ -154,7 +131,7 @@ export default function SellOnboardingPage() {
       const json = await res.json();
       if (!res.ok) throw new Error(json.error || 'Failed to activate');
       await refreshUser();
-      router.replace('/dashboard');
+      router.replace(returnTo);
     } catch (e) {
       alert(e instanceof Error ? e.message : 'Failed to activate');
       setSaving(false);
@@ -191,7 +168,7 @@ export default function SellOnboardingPage() {
           {/* Stepper */}
           <div className="mb-8">
             <p className="text-xs uppercase tracking-wide text-[var(--text-2)] mb-2">
-              Step {step + 1} of 5
+              Step {step + 1} of 3
             </p>
             <div className="flex items-center gap-1">
               {STEPS.map((s, i) => {
@@ -212,46 +189,42 @@ export default function SellOnboardingPage() {
 
           {/* Step content */}
           <div className="bg-[var(--surface)] border border-[var(--border)] rounded-lg p-6">
-            {step === 0 && <Step0Prescreen onContinue={handleStep0Continue} />}
-            {step === 1 && (
-              <Step1Basics
-                initial={{
-                  displayName: profile?.display_name ?? undefined,
-                  email: profile?.email ?? undefined,
-                  mpesaNumber: profile?.mpesa_number ?? undefined,
-                  profilePhotoUrl: profile?.profile_photo_url ?? undefined,
-                }}
-                userEmail={user.email}
-                onNext={handleStep1Next}
-                isLoading={saving}
-              />
+            {step === 0 && (
+              <>
+                <Step0Prescreen hideContinueButton />
+                <div className="mt-6 pt-6 border-t border-[var(--border)]">
+                  <Step1Basics
+                    initial={{
+                      displayName: profile?.display_name ?? undefined,
+                      email: profile?.email ?? undefined,
+                      mpesaNumber: profile?.mpesa_number ?? undefined,
+                      profilePhotoUrl: profile?.profile_photo_url ?? undefined,
+                    }}
+                    userEmail={user.email}
+                    onNext={handleStep1Next}
+                    isLoading={saving}
+                  />
+                </div>
+              </>
             )}
-            {step === 2 && (
-              <Step2Location
+            {step === 1 && (
+              <Step2And3Combined
                 initial={{
                   nairobiArea: profile?.nairobi_area ?? undefined,
                   meetupZones: profile?.meetup_zones ?? undefined,
                   deliveryPreference: profile?.delivery_preference ?? undefined,
                   deliveryFeeRange: profile?.delivery_fee_range ?? undefined,
-                }}
-                onNext={handleStep2Next}
-                isLoading={saving}
-              />
-            )}
-            {step === 3 && (
-              <Step3Verification
-                initial={{
                   legalName: profile?.legal_name ?? undefined,
                   dob: profile?.dob ?? undefined,
                   selfieUrl: profile?.selfie_url ?? undefined,
                   agreedToRules: profile?.agreed_to_rules ?? undefined,
                 }}
-                onNext={handleStep3Next}
+                onNext={handleStep2And3Next}
                 isLoading={saving}
               />
             )}
-            {step === 4 && (
-              <Step4Rules onSubmit={handleStep4Submit} isLoading={saving} />
+            {step === 2 && (
+              <Step4Rules onSubmit={handleRulesSubmit} isLoading={saving} />
             )}
           </div>
         </div>

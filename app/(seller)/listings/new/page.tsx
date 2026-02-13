@@ -47,12 +47,29 @@ export default function NewListingPage() {
   const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [isDraft, setIsDraft] = useState(false);
+  const [sellerCheckDone, setSellerCheckDone] = useState(false);
+  const [sellerActivated, setSellerActivated] = useState(false);
 
-  // Protect this page - require authentication
+  // Require authentication
   useEffect(() => {
     if (!authLoading && !user) {
       router.push('/login?returnTo=/listings/new');
+      return;
     }
+    if (!user) return;
+
+    // Require seller onboarding before listing
+    fetch('/api/seller-profile')
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.activated === true) {
+          setSellerActivated(true);
+        } else {
+          router.replace('/sell/onboarding?returnTo=/listings/new');
+        }
+      })
+      .catch(() => router.replace('/sell/onboarding?returnTo=/listings/new'))
+      .finally(() => setSellerCheckDone(true));
   }, [user, authLoading, router]);
 
   const [formData, setFormData] = useState({
@@ -296,8 +313,8 @@ export default function NewListingPage() {
     ...OTHER_CITIES.map(city => ({ value: city, label: city })),
   ];
 
-  // Show loading state while checking authentication
-  if (authLoading || !user) {
+  // Show loading while checking auth or seller onboarding
+  if (authLoading || !user || !sellerCheckDone || !sellerActivated) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-marketplace">
         <div className="text-center">

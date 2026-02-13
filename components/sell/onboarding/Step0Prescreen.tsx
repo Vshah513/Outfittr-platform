@@ -3,10 +3,11 @@
 import { Button } from '@/components/ui/Button';
 
 interface Step0PrescreenProps {
-  onContinue: () => void;
+  onContinue?: () => void;
+  hideContinueButton?: boolean;
 }
 
-export default function Step0Prescreen({ onContinue }: Step0PrescreenProps) {
+export default function Step0Prescreen({ onContinue, hideContinueButton }: Step0PrescreenProps) {
   return (
     <div className="space-y-6">
       <h2 className="text-xl font-semibold text-[var(--text)]">Start selling</h2>
@@ -16,11 +17,13 @@ export default function Step0Prescreen({ onContinue }: Step0PrescreenProps) {
         <li>Nairobi-first</li>
       </ul>
       <p className="text-sm text-[var(--text-3)] italic">Buyers pay sellers directly. Transact safely.</p>
-      <div className="pt-4">
-        <Button variant="primary" onClick={onContinue} className="w-full sm:w-auto">
-          Continue
-        </Button>
-      </div>
+      {!hideContinueButton && (
+        <div className="pt-4">
+          <Button variant="primary" onClick={onContinue} className="w-full sm:w-auto">
+            Continue
+          </Button>
+        </div>
+      )}
     </div>
   );
 }
