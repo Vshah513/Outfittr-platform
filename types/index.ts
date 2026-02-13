@@ -89,7 +89,8 @@ export interface User {
   seller_trust_status?: 'new' | 'standard';
 }
 
-export interface SellerProfile {
+/** Seller onboarding/profile row from seller_profiles table (not the public seller page type). */
+export interface SellerOnboardingProfile {
   user_id: string;
   activated: boolean;
   display_name?: string | null;

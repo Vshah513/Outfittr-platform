@@ -11,7 +11,7 @@ import Step1Basics from '@/components/sell/onboarding/Step1Basics';
 import Step2Location from '@/components/sell/onboarding/Step2Location';
 import Step3Verification from '@/components/sell/onboarding/Step3Verification';
 import Step4Rules from '@/components/sell/onboarding/Step4Rules';
-import type { SellerProfile } from '@/types';
+import type { SellerOnboardingProfile } from '@/types';
 
 const STEPS = [
   { number: 0, title: 'Start' },
@@ -25,7 +25,7 @@ export default function SellOnboardingPage() {
   const router = useRouter();
   const { user, isLoading: authLoading, refreshUser } = useAuth();
   const [step, setStep] = useState(0);
-  const [profile, setProfile] = useState<SellerProfile | null | undefined>(undefined);
+  const [profile, setProfile] = useState<SellerOnboardingProfile | null | undefined>(undefined);
   const [loadingProfile, setLoadingProfile] = useState(true);
   const [saving, setSaving] = useState(false);
 
