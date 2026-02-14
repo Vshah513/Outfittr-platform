@@ -3,6 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { useTheme } from '@/contexts/ThemeContext';
+import AddToHomeScreenQR from '@/components/pwa/AddToHomeScreenQR';
 
 export default function Footer() {
   const { theme } = useTheme();
@@ -27,7 +28,7 @@ export default function Footer() {
   return (
     <footer className="mt-auto border-t bg-[var(--surface)] border-[var(--border)]">
       <div className="max-w-7xl mx-auto px-4 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-8">
           {/* Brand */}
           <div>
             <Link href="/" className="flex items-center mb-4">
@@ -53,6 +54,12 @@ export default function Footer() {
                 </svg>
               </a>
             </div>
+          </div>
+
+          {/* Get the app - QR code for add to home screen */}
+          <div>
+            <h3 className="font-semibold text-sm mb-4 text-[var(--brand)]">Get the app</h3>
+            <AddToHomeScreenQR size={140} label="Scan to add to home screen" />
           </div>
 
           {/* Links */}

@@ -7,6 +7,8 @@ import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import { Card, CardContent, CardHeader } from '@/components/ui/Card';
 import { useAuth } from '@/contexts/AuthContext';
+import InstallAppPrompt from '@/components/pwa/InstallAppPrompt';
+import AddToHomeScreenQR from '@/components/pwa/AddToHomeScreenQR';
 
 export default function AccountHubPage() {
   const router = useRouter();
@@ -108,6 +110,23 @@ export default function AccountHubPage() {
                     Seller dashboard
                   </Link>
                 )}
+              </CardContent>
+            </Card>
+
+            {/* Install app (PWA) */}
+            <Card className="border-[var(--border)]">
+              <CardHeader>
+                <h2 className="text-lg font-semibold text-[var(--text)]">Get the app</h2>
+                <p className="text-sm text-[var(--text-2)]">Add Outfittr to your home screen for quick access</p>
+              </CardHeader>
+              <CardContent className="flex flex-col sm:flex-row gap-6 items-start">
+                <AddToHomeScreenQR size={160} label="Scan to open and add to home screen" className="flex-shrink-0" />
+                <div className="flex-1 space-y-3">
+                  <InstallAppPrompt />
+                  <p className="text-xs text-[var(--text-3)]">
+                    On iPhone: Safari → Share → Add to Home Screen. On Android: use the Install app button above or browser menu.
+                  </p>
+                </div>
               </CardContent>
             </Card>
           </div>

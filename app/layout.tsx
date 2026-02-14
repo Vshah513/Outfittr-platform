@@ -1,6 +1,5 @@
 import './globals.css'
 import type { Metadata, Viewport } from 'next'
-import Script from 'next/script'
 import { Inter } from 'next/font/google'
 import { BundleProvider } from '@/components/bundles/BundleContext'
 import BundleTray from '@/components/bundles/BundleTray'
@@ -8,6 +7,7 @@ import { AuthProvider } from '@/contexts/AuthContext'
 import { ThemeProvider } from '@/contexts/ThemeContext'
 import AuthModal from '@/components/auth/AuthModal'
 import { Analytics } from '@vercel/analytics/react'
+import RegisterServiceWorker from '@/components/pwa/RegisterServiceWorker'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -19,6 +19,12 @@ export const metadata: Metadata = {
   description: "Kenya's leading marketplace for secondhand fashion, vintage finds, and unique styles",
   keywords: ['thrift', 'secondhand', 'fashion', 'kenya', 'marketplace', 'vintage'],
   authors: [{ name: 'Outfittr' }],
+  manifest: '/manifest.webmanifest',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'black-translucent',
+    title: 'Outfittr',
+  },
   openGraph: {
     title: 'Outfittr - Buy & Sell Unique Fashion',
     description: "Kenya's leading marketplace for secondhand fashion",
@@ -59,9 +65,10 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={inter.className}>
-        <Script id="theme-init" strategy="beforeInteractive">
-          {themeScript}
-        </Script>
+        <script
+          id="theme-init"
+          dangerouslySetInnerHTML={{ __html: themeScript }}
+        />
         <ThemeProvider>
           <AuthProvider>
             <BundleProvider>
@@ -72,6 +79,7 @@ export default function RootLayout({
           </AuthProvider>
         </ThemeProvider>
         <Analytics />
+        <RegisterServiceWorker />
       </body>
     </html>
   )
