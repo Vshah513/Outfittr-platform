@@ -13,6 +13,7 @@ import ScrollHintCue from '@/components/home/ScrollHintCue';
 import SellInMinutes from '@/components/home/SellInMinutes';
 import BrowseByVibe from '@/components/home/BrowseByVibe';
 import HomeFAQ from '@/components/home/HomeFAQ';
+import { ProductTourProvider } from '@/components/tour/ProductTour';
 
 export default function HomePage() {
   const { user, openAuthModal } = useAuth();
@@ -28,6 +29,7 @@ export default function HomePage() {
   };
 
   return (
+    <ProductTourProvider>
     <div className="min-h-screen flex flex-col bg-[var(--bg)]">
       <Navbar />
 
@@ -93,7 +95,7 @@ export default function HomePage() {
       <SellInMinutes />
 
       {/* Swipe Discovery */}
-      <section className="pt-8 pb-20 bg-[var(--bg)]">
+      <section data-tour="swipe-discovery" className="pt-8 pb-20 bg-[var(--bg)]">
         <div className="max-w-7xl mx-auto px-4">
           <SwipeDiscovery />
         </div>
@@ -168,7 +170,7 @@ export default function HomePage() {
       <HomeFAQ />
 
       {/* CTA Section - inverted accent */}
-      <section className="py-16 bg-[var(--text)] text-[var(--bg)]">
+      <section data-tour="get-started" className="py-16 bg-[var(--text)] text-[var(--bg)]">
         <div className="max-w-4xl mx-auto px-4 text-center">
           <h2 className="text-3xl md:text-4xl font-bold mb-4">
             Ready to Join Our Community?
@@ -197,6 +199,7 @@ export default function HomePage() {
 
       <Footer />
     </div>
+    </ProductTourProvider>
   );
 }
 

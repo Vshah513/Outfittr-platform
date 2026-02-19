@@ -272,6 +272,7 @@ export default function Navbar() {
 
             {/* Sell Button - Desktop */}
             <button
+              data-tour="sell"
               onClick={handleSellClick}
               className="hidden md:flex items-center gap-1.5 px-4 py-2 text-sm font-medium tracking-wide uppercase rounded-full transition-all duration-200 shadow-sm bg-[var(--surface-2)] border border-[var(--brand)] text-[var(--text)] hover:bg-[var(--surface)] hover:border-[var(--text-2)] focus:outline-none focus:ring-2 focus:ring-[var(--brand)] focus:ring-offset-1 focus:ring-offset-[var(--surface)]"
             >
@@ -283,6 +284,7 @@ export default function Navbar() {
 
             {/* Mobile: Seller Leaderboard - small icon button */}
             <button
+              data-tour="leaderboard-mobile"
               type="button"
               onClick={() => setShowLeaderboardModal(true)}
               className="md:hidden p-1.5 rounded-full border border-[var(--border)] bg-[var(--surface-2)] text-[var(--text-2)] transition-all hover:bg-[var(--surface)] focus:outline-none focus:ring-2 focus:ring-[var(--brand)] focus:ring-offset-1 flex-shrink-0 [touch-action:manipulation]"
@@ -295,6 +297,7 @@ export default function Navbar() {
 
             {/* Mobile: Sell an item - compact button */}
             <button
+              data-tour="sell-mobile"
               type="button"
               onClick={handleSellClick}
               className="md:hidden flex items-center gap-1 flex-shrink-0 px-2.5 py-1.5 text-xs font-medium uppercase bg-[var(--text)] text-[var(--bg)] rounded-full hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-[var(--brand)] focus:ring-offset-1 [touch-action:manipulation]"
@@ -377,6 +380,7 @@ export default function Navbar() {
             <Link
               key={category.name}
               href={category.href}
+              {...(category.name === 'Marketplace' && { 'data-tour': 'marketplace-mobile' })}
               className={cn(
                 "shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-colors whitespace-nowrap",
                 category.isSpecial
@@ -414,6 +418,7 @@ export default function Navbar() {
                   ) : (
                     <Link
                       href={category.href}
+                      {...(category.name === 'Marketplace' && { 'data-tour': 'marketplace' })}
                       className={cn(
                         "text-sm transition-colors",
                         category.isSpecial 
@@ -486,6 +491,7 @@ export default function Navbar() {
             
             {/* View Seller Leaderboard Button - Refined Vintage Style with Popup Indicator */}
             <button
+              data-tour="leaderboard"
               onClick={() => setShowLeaderboardModal(true)}
               className="hidden md:flex items-center gap-2 px-3.5 py-1.5 text-xs font-medium tracking-wide bg-transparent border rounded-full transition-all duration-200 group text-[var(--text-2)] border-[var(--border)] hover:bg-[var(--surface-2)] hover:border-[var(--text-2)] hover:text-[var(--text)] focus:outline-none focus:ring-2 focus:ring-[var(--brand)] focus:ring-offset-1 focus:ring-offset-[var(--surface)]"
               aria-label="View Seller Leaderboard"
