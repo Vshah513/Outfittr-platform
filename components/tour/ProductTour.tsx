@@ -181,15 +181,26 @@ function padRect(r: Rect, pad: number): Rect {
 // Tooltip positioning
 // ---------------------------------------------------------------------------
 
+const TOOLTIP_GAP = 16;
+const TOOLTIP_WIDTH = 340;
+const MARGIN = 16;
+const TOOLTIP_EST_HEIGHT = 220;
+const ARROW_PROXIMITY = 40;
+const MOBILE_BREAKPOINT = 640;
+
 interface TooltipPos {
   top: number;
   left: number;
   transformOrigin: string;
   actualPlacement: 'top' | 'bottom' | 'left' | 'right';
+  useBottomSheet?: boolean;
+  showArrow?: boolean;
+  width: number;
 }
 
-const TOOLTIP_GAP = 16;
-const TOOLTIP_WIDTH = 340;
+function clampX(x: number, w: number, vw: number): number {
+  return Math.max(MARGIN, Math.min(x, vw - w - MARGIN));
+}
 
 function computeTooltipPos(
   rect: Rect,
@@ -198,74 +209,69 @@ function computeTooltipPos(
   const vw = window.innerWidth;
   const vh = window.innerHeight;
   const padded = padRect(rect, SPOTLIGHT_PADDING);
-  const tooltipW = Math.min(TOOLTIP_WIDTH, vw - 32);
+  const tooltipW = Math.min(TOOLTIP_WIDTH, vw - 2 * MARGIN);
 
-  const tryBottom = (): TooltipPos | null => {
-    const top = padded.y + padded.height + TOOLTIP_GAP;
-    if (top + 120 > vh) return null;
-    return {
-      top,
-      left: clampX(padded.x + padded.width / 2 - tooltipW / 2, tooltipW, vw),
-      transformOrigin: 'top center',
-      actualPlacement: 'bottom',
-    };
-  };
+  // Prefer "above" when space is tight below
+  const spaceBelow = vh - (rect.y + rect.height + TOOLTIP_GAP);
+  const spaceAbove = rect.y - TOOLTIP_GAP;
+  const tooltipFitsBelow = spaceBelow >= TOOLTIP_EST_HEIGHT;
+  const tooltipFitsAbove = spaceAbove >= TOOLTIP_EST_HEIGHT;
+  const placeAbove = !tooltipFitsBelow && (tooltipFitsAbove || spaceAbove > spaceBelow);
 
-  const tryTop = (): TooltipPos | null => {
-    const top = padded.y - TOOLTIP_GAP;
-    if (top < 120) return null;
-    return {
-      top,
-      left: clampX(padded.x + padded.width / 2 - tooltipW / 2, tooltipW, vw),
-      transformOrigin: 'bottom center',
-      actualPlacement: 'top',
-    };
-  };
+  let top: number;
+  let left: number;
+  let actualPlacement: TooltipPos['actualPlacement'];
+  let transformOrigin: string;
 
-  const tryRight = (): TooltipPos | null => {
-    const left = padded.x + padded.width + TOOLTIP_GAP;
-    if (left + tooltipW > vw - 16) return null;
-    return {
-      top: padded.y + padded.height / 2,
-      left,
-      transformOrigin: 'left center',
-      actualPlacement: 'right',
-    };
-  };
+  if (placeAbove) {
+    actualPlacement = 'top';
+    transformOrigin = 'bottom center';
+    top = rect.y - TOOLTIP_GAP - TOOLTIP_EST_HEIGHT;
+  } else {
+    actualPlacement = 'bottom';
+    transformOrigin = 'top center';
+    top = rect.y + rect.height + TOOLTIP_GAP;
+  }
+  left = rect.x + rect.width / 2 - tooltipW / 2;
 
-  const tryLeft = (): TooltipPos | null => {
-    const left = padded.x - TOOLTIP_GAP - tooltipW;
-    if (left < 16) return null;
-    return {
-      top: padded.y + padded.height / 2,
-      left,
-      transformOrigin: 'right center',
-      actualPlacement: 'left',
-    };
-  };
+  // 1. Clamp so tooltip never overflows viewport
+  let clampedTop = Math.max(MARGIN, Math.min(top, vh - TOOLTIP_EST_HEIGHT - MARGIN));
+  const clampedLeft = clampX(left, tooltipW, vw);
 
-  const order: Record<string, (() => TooltipPos | null)[]> = {
-    bottom: [tryBottom, tryTop, tryRight, tryLeft],
-    top: [tryTop, tryBottom, tryRight, tryLeft],
-    left: [tryLeft, tryRight, tryBottom, tryTop],
-    right: [tryRight, tryLeft, tryBottom, tryTop],
-  };
+  // 2. Mobile: fixed bottom sheet fallback when tooltip would overlap spotlight or is off-screen
+  const isMobile = vw < MOBILE_BREAKPOINT;
+  const rawTopOffScreen = top < MARGIN;
+  const overlap =
+    Math.abs(clampedTop - (rect.y + rect.height)) < TOOLTIP_EST_HEIGHT;
+  const useBottomSheet = isMobile && (rawTopOffScreen || overlap);
 
-  for (const fn of order[placement]) {
-    const pos = fn();
-    if (pos) return pos;
+  if (useBottomSheet) {
+    clampedTop = vh - TOOLTIP_EST_HEIGHT; // not used for positioning; bottom sheet uses fixed bottom
+  }
+
+  // 3. Arrow: only show when tooltip edge is within ARROW_PROXIMITY of target rect
+  const targetBottom = padded.y + padded.height;
+  const targetTop = padded.y;
+  let showArrow = false;
+  if (actualPlacement === 'bottom') {
+    showArrow = Math.abs(clampedTop - targetBottom) <= ARROW_PROXIMITY;
+  } else if (actualPlacement === 'top') {
+    showArrow = Math.abs(clampedTop + TOOLTIP_EST_HEIGHT - targetTop) <= ARROW_PROXIMITY;
+  } else if (actualPlacement === 'left' || actualPlacement === 'right') {
+    const tooltipCenterY = clampedTop + TOOLTIP_EST_HEIGHT / 2;
+    const targetCenterY = rect.y + rect.height / 2;
+    showArrow = Math.abs(tooltipCenterY - targetCenterY) <= ARROW_PROXIMITY;
   }
 
   return {
-    top: padded.y + padded.height + TOOLTIP_GAP,
-    left: clampX(padded.x + padded.width / 2 - tooltipW / 2, tooltipW, vw),
-    transformOrigin: 'top center',
-    actualPlacement: 'bottom',
+    top: clampedTop,
+    left: clampedLeft,
+    transformOrigin,
+    actualPlacement,
+    useBottomSheet,
+    showArrow,
+    width: tooltipW,
   };
-}
-
-function clampX(x: number, w: number, vw: number): number {
-  return Math.max(16, Math.min(x, vw - w - 16));
 }
 
 // ---------------------------------------------------------------------------
@@ -305,10 +311,8 @@ function TourOverlay() {
 
     el.scrollIntoView({ behavior: 'smooth', block: 'center' });
 
-    // Measure immediately (works when element is already in view) and
-    // again after scroll settles for off-screen targets
-    measure();
-    const timer = setTimeout(measure, 500);
+    // Wait for scroll to settle before measuring so tooltip uses post-scroll coordinates
+    const timer = setTimeout(measure, 450);
     return () => clearTimeout(timer);
   }, [ctx?.isActive, ctx?.currentStep, measure]);
 
@@ -413,31 +417,74 @@ function TourOverlay() {
           <AnimatePresence mode="wait">
             <motion.div
               key={ctx.currentStep}
-              className="absolute"
-              style={{
-                zIndex: 99999,
-                width: Math.min(TOOLTIP_WIDTH, vw - 32),
-                top:
-                  tooltipPos.actualPlacement === 'top'
-                    ? 'auto'
-                    : tooltipPos.top,
-                bottom:
-                  tooltipPos.actualPlacement === 'top'
-                    ? vh - tooltipPos.top
-                    : 'auto',
-                left: tooltipPos.left,
-                transformOrigin: tooltipPos.transformOrigin,
+              className={tooltipPos.useBottomSheet ? '' : 'absolute'}
+              style={
+                tooltipPos.useBottomSheet
+                  ? {
+                      zIndex: 99999,
+                      position: 'fixed',
+                      bottom: 0,
+                      left: 0,
+                      right: 0,
+                      borderRadius: '16px 16px 0 0',
+                      paddingBottom: 'env(safe-area-inset-bottom, 16px)',
+                      transformOrigin: 'bottom center',
+                    }
+                  : {
+                      zIndex: 99999,
+                      position: 'absolute',
+                      width: tooltipPos.width,
+                      top:
+                        tooltipPos.actualPlacement === 'top'
+                          ? 'auto'
+                          : tooltipPos.top,
+                      bottom:
+                        tooltipPos.actualPlacement === 'top'
+                          ? vh - tooltipPos.top
+                          : 'auto',
+                      left: tooltipPos.left,
+                      transformOrigin: tooltipPos.transformOrigin,
+                    }
+              }
+              initial={{
+                opacity: 0,
+                scale: 0.92,
+                y: tooltipPos.useBottomSheet ? 24 : tooltipPos.actualPlacement === 'top' ? 8 : -8,
               }}
-              initial={{ opacity: 0, scale: 0.92, y: tooltipPos.actualPlacement === 'top' ? 8 : -8 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.92 }}
               transition={{ type: 'spring', stiffness: 400, damping: 28 }}
             >
+              {tooltipPos.showArrow && !tooltipPos.useBottomSheet && (
+                <div
+                  className="absolute w-0 h-0"
+                  style={{
+                    left: '50%',
+                    marginLeft: -8,
+                    width: 0,
+                    height: 0,
+                    borderLeft: '8px solid transparent',
+                    borderRight: '8px solid transparent',
+                    ...(tooltipPos.actualPlacement === 'bottom'
+                      ? {
+                          top: 0,
+                          marginTop: -8,
+                          borderBottom: '8px solid var(--surface)',
+                        }
+                      : {
+                          bottom: 0,
+                          marginBottom: -8,
+                          borderTop: '8px solid var(--surface)',
+                        }),
+                  }}
+                />
+              )}
               <div
                 className="rounded-2xl shadow-2xl border overflow-hidden"
                 style={{
                   background: 'var(--surface)',
                   borderColor: 'var(--border)',
+                  ...(tooltipPos.useBottomSheet ? { borderRadius: '16px 16px 0 0' } : {}),
                 }}
               >
                 {/* Step counter badge */}
